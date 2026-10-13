@@ -11,7 +11,8 @@ interface State {
 }
 
 const LS_KEY = "maqi-admin-demo-v1";
-let state: State = { status: "idle", draft: null, published: null, log: [] };
+const INITIAL: State = { status: "idle", draft: null, published: null, log: [] };
+let state: State = INITIAL;
 const listeners = new Set<() => void>();
 
 function set(next: Partial<State>) {
@@ -26,7 +27,7 @@ export function useAdmin() {
   return useSyncExternalStore(
     (l) => (listeners.add(l), () => listeners.delete(l)),
     () => state,
-    () => state,
+    () => INITIAL,
   );
 }
 
