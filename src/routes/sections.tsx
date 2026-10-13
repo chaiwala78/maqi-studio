@@ -50,8 +50,8 @@ function SectionEditor({ item, onClose }: { item: HomeSection; onClose: () => vo
   const [source, setSource] = useState(item.config.source);
   function save(): void {
     const n = Number(limit);
-    if (!Number.isInteger(n) || n < 1 || n > 100) return toast.error("Item limit must be 1–100.");
-    if (!source.trim() || source.length > 100) return toast.error("Source is required.");
+    if (!Number.isInteger(n) || n < 1 || n > 100) { toast.error("Item limit must be 1–100."); return; }
+    if (!source.trim() || source.length > 100) { toast.error("Source is required."); return; }
     mutate("sections", (a) => a.map((y) => (y.id === item.id ? { ...y, config: { itemLimit: n, source: source.trim() } } : y)), "Configured section", item.title);
     toast.success("Saved to draft");
     onClose();

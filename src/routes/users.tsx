@@ -18,8 +18,8 @@ function UsersPage() {
   const [email, setEmail] = useState("");
   function add(): void {
     const e = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return toast.error("Enter a valid email.");
-    if (s.draft!.admins.some((a) => a.email === e)) return toast.error("Already authorized.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { toast.error("Enter a valid email."); return; }
+    if (s.draft!.admins.some((a) => a.email === e)) { toast.error("Already authorized."); return; }
     mutate("admins", (a) => [...a, { email: e, role: "editor", addedAt: new Date().toISOString().slice(0, 10) }], "Authorized admin", e);
     setEmail("");
   }

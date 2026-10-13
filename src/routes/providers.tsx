@@ -66,10 +66,10 @@ function ProviderEditor({ item, onClose }: { item: StreamingProvider; onClose: (
   const [sample, setSample] = useState({ tmdbId: "12345", season: "1", episode: "1" });
   const isNew = !list.some((x) => x.id === item.id);
   function save(): void {
-    if (!f.name.trim()) return toast.error("Display name is required.");
+    if (!f.name.trim()) { toast.error("Display name is required."); return; }
     const m = validTemplate(f.movieTemplate.trim(), false);
-    if (m) return toast.error(`Movie template: ${m}`);
-    if (f.tvTemplate.trim()) { const t = validTemplate(f.tvTemplate.trim(), true); if (t) return toast.error(`TV template: ${t}`); }
+    if (m) { toast.error(`Movie template: ${m}`); return; }
+    if (f.tvTemplate.trim()) { const t = validTemplate(f.tvTemplate.trim(), true); if (t) { toast.error(`TV template: ${t}`); return; } }
     const n = { ...f, name: f.name.trim().slice(0, 60), movieTemplate: f.movieTemplate.trim(), tvTemplate: f.tvTemplate.trim() };
     mutate("providers", (a) => (isNew ? [...a, n] : a.map((x) => (x.id === n.id ? n : x))), isNew ? "Added provider" : "Edited provider", n.name);
     toast.success("Saved to draft");

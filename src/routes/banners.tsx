@@ -80,8 +80,8 @@ function BannerEditor({ item, onClose }: { item: HeroBanner; onClose: () => void
   const [showPreview, setShowPreview] = useState(false);
   const isNew = !list.some((x) => x.id === item.id);
   function save(): void {
-    if (!/^[A-Za-z0-9-]{1,32}$/.test(f.tmdbId.trim())) return toast.error("Enter a valid TMDB ID.");
-    if (!f.title.trim()) return toast.error("Title is required.");
+    if (!/^[A-Za-z0-9-]{1,32}$/.test(f.tmdbId.trim())) { toast.error("Enter a valid TMDB ID."); return; }
+    if (!f.title.trim()) { toast.error("Title is required."); return; }
     const n = { ...f, tmdbId: f.tmdbId.trim(), title: f.title.trim().slice(0, 120), tagline: f.tagline.slice(0, 160) };
     mutate("banners", (a) => (isNew ? [...a, n] : a.map((x) => (x.id === n.id ? n : x))), isNew ? "Added banner" : "Edited banner", n.title);
     toast.success("Saved to draft");

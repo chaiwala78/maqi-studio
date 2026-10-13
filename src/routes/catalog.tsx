@@ -103,9 +103,9 @@ function ItemEditor({ item, onClose }: { item: CatalogItem; onClose: () => void 
 
   function save(): void {
     const tmdbId = cur.tmdbId.trim(), title = cur.title.trim();
-    if (!TMDB_RE.test(tmdbId)) return toast.error("Enter a valid TMDB ID (letters, numbers, dashes).");
-    if (!title || title.length > 200) return toast.error("Title is required (max 200 characters).");
-    if (items.some((x) => x.tmdbId === tmdbId && x.type === cur.type && x.id !== cur.id)) return toast.error("This TMDB ID and type already exist in the catalog.");
+    if (!TMDB_RE.test(tmdbId)) { toast.error("Enter a valid TMDB ID (letters, numbers, dashes)."); return; }
+    if (!title || title.length > 200) { toast.error("Title is required (max 200 characters)."); return; }
+    if (items.some((x) => x.tmdbId === tmdbId && x.type === cur.type && x.id !== cur.id)) { toast.error("This TMDB ID and type already exist in the catalog."); return; }
     const next = { ...cur, tmdbId, title };
     mutate("catalog", (a) => (isNew ? [...a, next] : a.map((x) => (x.id === next.id ? next : x))), isNew ? "Added title" : "Edited title", title);
     toast.success(isNew ? "Added to draft" : "Saved to draft");
@@ -158,8 +158,8 @@ function CuratedCard({ id }: { id: string }) {
   const [val, setVal] = useState("");
   function add(): void {
     const v = val.trim();
-    if (!TMDB_RE.test(v)) return toast.error("Enter a valid TMDB ID.");
-    if (l.tmdbIds.includes(v)) return toast.error("Already in this list.");
+    if (!TMDB_RE.test(v)) { toast.error("Enter a valid TMDB ID."); return; }
+    if (l.tmdbIds.includes(v)) { toast.error("Already in this list."); return; }
     mutate("curated", (a) => a.map((x) => (x.id === id ? { ...x, tmdbIds: [...x.tmdbIds, v] } : x)), `Added ID ${v} to`, l.name);
     setVal("");
   }
