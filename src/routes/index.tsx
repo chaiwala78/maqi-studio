@@ -36,7 +36,7 @@ function Overview() {
           return (
             <div className="space-y-6">
               {hero && (
-                <Link to="/banners" className="group relative block aspect-[16/9] overflow-hidden rounded-lg border border-border md:aspect-[21/8]">
+                <Link to="/banners" className="group relative block aspect-[16/9] overflow-hidden glass rounded-2xl md:aspect-[21/8]">
                   <Poster imageKey={hero.imageKey} title={hero.title} className="absolute inset-0 aspect-auto h-full w-full rounded-none" />
                   <div className="scrim-bottom absolute inset-0" />
                   <div className="absolute bottom-0 p-4">
@@ -46,7 +46,7 @@ function Overview() {
                   </div>
                 </Link>
               )}
-              <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
+              <div className="grid grid-cols-2 gap-px overflow-hidden glass rounded-2xl bg-border md:grid-cols-4">
                 {stats.map((x) => (
                   <Link key={x.to} to={x.to} className="bg-background p-4 hover:bg-card">
                     <p className="eyebrow">{x.label}</p>
@@ -64,7 +64,7 @@ function Overview() {
                   <Link to="/settings" className="flex items-center text-xs text-muted-foreground hover:text-foreground">Full log <ChevronRight className="h-3 w-3" /></Link>
                 </div>
                 {s.log.length ? (
-                  <ul className="divide-y divide-border rounded-lg border border-border">
+                  <ul className="divide-y divide-border glass rounded-2xl">
                     {s.log.slice(0, 5).map((l) => (
                       <li key={l.id} className="flex justify-between gap-3 px-3 py-2.5 text-sm">
                         <span><span className="text-muted-foreground">{l.action}</span> {l.target}</span>

@@ -36,7 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen md:pl-56">
-      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-warning/30 bg-background px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-warning">
+      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-warning/20 glass border-x-0 border-t-0 px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-warning">
         <span>{adminService.mode === "demo" ? "Demo data — not connected to production" : "Live"}</span>
         <span className="text-muted-foreground md:hidden">MaQi Admin</span>
       </div>
@@ -56,15 +56,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
 
-      <main className="mx-auto max-w-5xl px-4 pb-40 pt-5 md:px-8 md:pb-24 md:pt-8">{children}</main>
+      <main className="mx-auto max-w-5xl px-4 pb-44 pt-5 md:px-8 md:pb-24 md:pt-8">{children}</main>
 
       <PublishBar />
 
       {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-sidebar pb-[env(safe-area-inset-bottom)] md:hidden">
+      <nav className="glass fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-5 rounded-2xl shadow-lg md:hidden">
         {NAV.slice(0, 4).map((n) => (
-          <Link key={n.to} to={n.to} className={cn("flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground", isActive(n.to) && "text-foreground")}>
-            <n.icon className={cn("h-5 w-5", isActive(n.to) && "text-primary")} /> {n.label}
+          <Link key={n.to} to={n.to} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground", isActive(n.to) && "text-foreground")}>
+            {isActive(n.to) && <span className="absolute top-1 h-8 w-12 rounded-xl bg-primary/15" />}
+            <n.icon className={cn("relative h-5 w-5", isActive(n.to) && "text-primary")} /> <span className="relative">{n.label}</span>
           </Link>
         ))}
         <button onClick={() => setMore(true)} className={cn("flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground", NAV.slice(4).some((n) => isActive(n.to)) && "text-foreground")}>
@@ -72,7 +73,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </button>
       </nav>
       <Sheet open={more} onOpenChange={setMore}>
-        <SheetContent side="bottom" className="rounded-t-xl">
+        <SheetContent side="bottom" className="glass rounded-t-2xl">
           <SheetHeader><SheetTitle>More</SheetTitle><SheetDescription className="sr-only">Other sections</SheetDescription></SheetHeader>
           <div className="flex flex-col gap-1 px-4 pb-6">
             {NAV.slice(4).map((n) => (
@@ -109,12 +110,12 @@ function PublishBar() {
 
   return (
     <>
-      <div className="fixed inset-x-0 bottom-[60px] z-30 border-t border-border bg-card px-4 py-2.5 md:bottom-0 md:left-56">
+      <div className="glass fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 rounded-full border-primary/30 py-1.5 pl-4 pr-1.5 shadow-lg md:inset-x-auto md:bottom-4 md:left-[calc(14rem+1rem)] md:right-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground"><span className="text-foreground">{keys.length}</span> area{keys.length > 1 ? "s" : ""} with unpublished changes</p>
           <div className="flex gap-2">
             <Button size="sm" variant="ghost" onClick={() => { discardDraft(); toast("Draft discarded"); }}>Discard</Button>
-            <Button size="sm" onClick={() => setOpen(true)}>Review</Button>
+            <Button size="sm" className="rounded-full" onClick={() => setOpen(true)}>Review</Button>
           </div>
         </div>
       </div>

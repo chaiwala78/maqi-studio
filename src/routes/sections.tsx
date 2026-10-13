@@ -24,7 +24,7 @@ function SectionsPage() {
       <PageHeader eyebrow="Home" title="Home Sections">Only existing sections are listed. Names and keys come from the app and aren't changed here.</PageHeader>
       <Ready>
         {s.draft?.sections.length ? (
-          <ul className="divide-y divide-border rounded-lg border border-border">
+          <ul className="glass divide-y divide-border overflow-hidden rounded-2xl">
             {s.draft.sections.map((x, i, arr) => (
               <li key={x.id} className="flex items-center gap-3 px-2 py-3">
                 <OrderButtons index={i} length={arr.length} onMove={(d) => mutate("sections", (a) => move(a, i, d), "Reordered section", x.title)} />

@@ -26,7 +26,7 @@ function UsersPage() {
   return (
     <>
       <PageHeader eyebrow="Security" title="Firebase & Admins">Only explicitly listed emails may use the panel. No end-user tracking is collected here.</PageHeader>
-      <section className="mb-6 rounded-lg border border-border p-4">
+      <section className="mb-6 glass rounded-2xl p-4">
         <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-warning" /><p className="text-sm font-medium">Firebase Authentication</p><Tag tone="warning">not connected</Tag></div>
         <p className="mt-2 text-sm text-muted-foreground">Sign-in is not active. Once your Firebase project is linked, the allowlist will be enforced on the server, not just in this screen.</p>
       </section>
@@ -35,7 +35,7 @@ function UsersPage() {
           <Input type="email" placeholder="admin@email.com" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
           <Button onClick={add}><Plus className="h-4 w-4" /> Authorize</Button>
         </div>
-        <ul className="divide-y divide-border rounded-lg border border-border">
+        <ul className="divide-y divide-border glass rounded-2xl">
           {s.draft?.admins.map((a) => (
             <li key={a.email} className="flex items-center gap-3 px-3 py-2.5">
               <div className="min-w-0 flex-1"><p className="truncate text-sm">{a.email}</p><p className="font-mono text-[11px] text-muted-foreground">added {a.addedAt}</p></div>
