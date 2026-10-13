@@ -101,7 +101,7 @@ function ItemEditor({ item, onClose }: { item: CatalogItem; onClose: () => void 
   const [cur, setF] = useState<CatalogItem>(item);
   const isNew = !items.some((x) => x.id === item.id);
 
-  function save() {
+  function save(): void {
     const tmdbId = cur.tmdbId.trim(), title = cur.title.trim();
     if (!TMDB_RE.test(tmdbId)) return toast.error("Enter a valid TMDB ID (letters, numbers, dashes).");
     if (!title || title.length > 200) return toast.error("Title is required (max 200 characters).");
@@ -156,7 +156,7 @@ function Curated() {
 function CuratedCard({ id }: { id: string }) {
   const l = useAdmin().draft!.curated.find((x) => x.id === id)!;
   const [val, setVal] = useState("");
-  function add() {
+  function add(): void {
     const v = val.trim();
     if (!TMDB_RE.test(v)) return toast.error("Enter a valid TMDB ID.");
     if (l.tmdbIds.includes(v)) return toast.error("Already in this list.");

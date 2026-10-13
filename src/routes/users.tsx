@@ -16,7 +16,7 @@ export const Route = createFileRoute("/users")({
 function UsersPage() {
   const s = useAdmin();
   const [email, setEmail] = useState("");
-  function add() {
+  function add(): void {
     const e = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) return toast.error("Enter a valid email.");
     if (s.draft!.admins.some((a) => a.email === e)) return toast.error("Already authorized.");

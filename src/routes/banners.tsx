@@ -79,7 +79,7 @@ function BannerEditor({ item, onClose }: { item: HeroBanner; onClose: () => void
   const [f, setF] = useState(item);
   const [showPreview, setShowPreview] = useState(false);
   const isNew = !list.some((x) => x.id === item.id);
-  function save() {
+  function save(): void {
     if (!/^[A-Za-z0-9-]{1,32}$/.test(f.tmdbId.trim())) return toast.error("Enter a valid TMDB ID.");
     if (!f.title.trim()) return toast.error("Title is required.");
     const n = { ...f, tmdbId: f.tmdbId.trim(), title: f.title.trim().slice(0, 120), tagline: f.tagline.slice(0, 160) };

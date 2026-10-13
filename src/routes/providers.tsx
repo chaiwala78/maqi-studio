@@ -65,7 +65,7 @@ function ProviderEditor({ item, onClose }: { item: StreamingProvider; onClose: (
   const [f, setF] = useState(item);
   const [sample, setSample] = useState({ tmdbId: "12345", season: "1", episode: "1" });
   const isNew = !list.some((x) => x.id === item.id);
-  function save() {
+  function save(): void {
     if (!f.name.trim()) return toast.error("Display name is required.");
     const m = validTemplate(f.movieTemplate.trim(), false);
     if (m) return toast.error(`Movie template: ${m}`);

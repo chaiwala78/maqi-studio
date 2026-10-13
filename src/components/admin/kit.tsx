@@ -17,7 +17,7 @@ export const IMAGES: Record<string, string> = {
   "poster-1": poster1, "poster-2": poster2, "poster-3": poster3, "banner-1": banner1,
 };
 
-export function Poster({ imageKey, title, className }: { imageKey?: string; title: string; className?: string }) {
+export function Poster({ imageKey, title, className }: { imageKey?: string | undefined; title: string; className?: string }) {
   const src = imageKey ? IMAGES[imageKey] : undefined;
   return (
     <div className={cn("relative aspect-[2/3] shrink-0 overflow-hidden rounded-md bg-muted", className)}>

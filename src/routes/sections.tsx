@@ -48,7 +48,7 @@ function SectionsPage() {
 function SectionEditor({ item, onClose }: { item: HomeSection; onClose: () => void }) {
   const [limit, setLimit] = useState(String(item.config.itemLimit));
   const [source, setSource] = useState(item.config.source);
-  function save() {
+  function save(): void {
     const n = Number(limit);
     if (!Number.isInteger(n) || n < 1 || n > 100) return toast.error("Item limit must be 1–100.");
     if (!source.trim() || source.length > 100) return toast.error("Source is required.");
