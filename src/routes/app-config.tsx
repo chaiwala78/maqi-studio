@@ -96,7 +96,7 @@ function AppConfigPage() {
   );
 }
 
-function Card({ title, k, on, onToggle, warn, children }: { title: string; k: string; on: boolean; onToggle: (v: boolean) => void; warn?: string; children: ReactNode }) {
+function Card({ title, k, on, onToggle, warn, children }: { title: string; k: string; on: boolean; onToggle: (v: boolean) => void; warn?: string | undefined; children: ReactNode }) {
   return (
     <section className="rounded-lg border border-border">
       <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-3">
