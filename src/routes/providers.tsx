@@ -28,7 +28,7 @@ function ProvidersPage() {
         {s.draft?.providers.length ? (
           <ul className="space-y-2">
             {s.draft.providers.map((p, i, arr) => (
-              <li key={p.id} className="flex items-start gap-3 rounded-lg border border-border p-3">
+              <li key={p.id} className="flex items-start gap-3 glass rounded-2xl p-3">
                 <OrderButtons index={i} length={arr.length} onMove={(d) => mutate("providers", (a) => move(a, i, d), "Changed priority", p.name)} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2"><span className="font-mono text-xs text-muted-foreground">#{i + 1}</span><p className="truncate text-sm font-medium">{p.name}</p>{!p.tvTemplate && <Tag tone="warning">movie only</Tag>}</div>

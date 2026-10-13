@@ -166,7 +166,7 @@ function CuratedCard({ id }: { id: string }) {
     setVal("");
   }
   return (
-    <section className="rounded-lg border border-border p-4">
+    <section className="glass rounded-2xl p-4">
       <h2 className="font-semibold">{l.name}</h2>
       <p className="mb-3 text-xs text-muted-foreground">{l.description} · {l.tmdbIds.length} IDs</p>
       <div className="mb-3 flex gap-2">

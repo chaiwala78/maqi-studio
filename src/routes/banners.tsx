@@ -19,7 +19,7 @@ export const Route = createFileRoute("/banners")({
 
 function BannerPreview({ b }: { b: HeroBanner }) {
   return (
-    <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border">
+    <div className="relative aspect-[16/9] overflow-hidden glass rounded-2xl">
       <Poster imageKey={b.imageKey} title={b.title} className="absolute inset-0 aspect-auto h-full w-full rounded-none" />
       <div className="scrim-bottom absolute inset-0" />
       <div className="absolute bottom-0 p-4">

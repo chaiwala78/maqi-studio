@@ -16,7 +16,7 @@ function SettingsPage() {
   return (
     <>
       <PageHeader eyebrow="System" title="Settings & Activity" />
-      <section className="mb-6 divide-y divide-border rounded-lg border border-border">
+      <section className="mb-6 divide-y divide-border glass rounded-2xl">
         <Row label="Data source" value={<Tag tone="warning">{adminService.mode}</Tag>} />
         <Row label="Worker URL" value={<span className="font-mono text-xs text-muted-foreground">Not configured — to be read from your Worker source</span>} />
         <Row label="Admin API" value={<span className="text-xs text-muted-foreground">Not connected</span>} />
@@ -28,7 +28,7 @@ function SettingsPage() {
       </div>
       <Ready>
         {s.log.length ? (
-          <ul className="divide-y divide-border rounded-lg border border-border">
+          <ul className="divide-y divide-border glass rounded-2xl">
             {s.log.map((l) => (
               <li key={l.id} className="flex flex-col gap-0.5 px-3 py-2.5 text-sm md:flex-row md:justify-between">
                 <span><span className="text-muted-foreground">{l.action}</span> {l.target}</span>
