@@ -91,20 +91,17 @@ function Titles() {
           })}
         </ul>
       ) : <Empty>{items.length ? "No titles match your search." : "No titles yet. Add one with its TMDB ID."}</Empty>}
-      <ItemEditor item={editing} onClose={() => setEditing(null)} />
+      {editing && <ItemEditor key={editing.id} item={editing} onClose={() => setEditing(null)} />}
     </>
   );
 }
 
-function ItemEditor({ item, onClose }: { item: CatalogItem | null; onClose: () => void }) {
+function ItemEditor({ item, onClose }: { item: CatalogItem; onClose: () => void }) {
   const items = useAdmin().draft!.catalog;
-  const [f, setF] = useState<CatalogItem | null>(null);
-  const cur = f && item && f.id === item.id ? f : item;
-  if (item && cur !== f) queueMicrotask(() => setF(item));
-  const isNew = !!item && !items.some((x) => x.id === item.id);
+  const [cur, setF] = useState<CatalogItem>(item);
+  const isNew = !items.some((x) => x.id === item.id);
 
   function save() {
-    if (!cur) return;
     const tmdbId = cur.tmdbId.trim(), title = cur.title.trim();
     if (!TMDB_RE.test(tmdbId)) return toast.error("Enter a valid TMDB ID (letters, numbers, dashes).");
     if (!title || title.length > 200) return toast.error("Title is required (max 200 characters).");
@@ -116,10 +113,10 @@ function ItemEditor({ item, onClose }: { item: CatalogItem | null; onClose: () =
   }
 
   return (
-    <Sheet open={!!item} onOpenChange={(o) => !o && onClose()}>
+    <Sheet open onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="bottom" className="mx-auto max-h-[90vh] max-w-lg overflow-y-auto rounded-t-xl">
         <SheetHeader><SheetTitle>{isNew ? "Add title" : "Edit title"}</SheetTitle><SheetDescription>Changes are staged in the draft.</SheetDescription></SheetHeader>
-        {cur && (
+        {(
           <div className="space-y-4 px-4 pb-4">
             <Field label="TMDB ID" hint="Copy from TMDB. Not auto-filled."><Input value={cur.tmdbId} onChange={(e) => setF({ ...cur, tmdbId: e.target.value })} className="font-mono" inputMode="numeric" /></Field>
             <Field label="Title"><Input value={cur.title} onChange={(e) => setF({ ...cur, title: e.target.value })} /></Field>
