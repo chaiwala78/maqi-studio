@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Ready, Tag, Empty } from "@/components/admin/kit";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,6 @@ function SettingsPage() {
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({ label, value }: { label: string; value: ReactNode }) {
   return <div className="flex items-center justify-between gap-4 px-3 py-3 text-sm"><span>{label}</span>{value}</div>;
 }
