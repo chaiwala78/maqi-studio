@@ -93,7 +93,7 @@ export function move<T>(arr: T[], i: number, dir: -1 | 1): T[] {
   const j = i + dir;
   if (j < 0 || j >= arr.length) return arr;
   const a = [...arr];
-  [a[i], a[j]] = [a[j], a[i]];
+  [a[i], a[j]] = [a[j] as T, a[i] as T];
   return a;
 }
 
