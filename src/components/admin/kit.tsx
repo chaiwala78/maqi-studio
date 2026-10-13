@@ -45,7 +45,7 @@ export function PageHeader({ eyebrow, title, action, children }: { eyebrow: stri
   );
 }
 
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({ label, hint, children }: { label: string; hint?: string | undefined; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label className="text-xs text-muted-foreground">{label}</Label>
