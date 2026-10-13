@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Clapperboard, GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, Loader2,
+  Clapperboard, GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, Loader2, SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -16,6 +16,7 @@ const NAV = [
   { to: "/catalog", label: "Catalog", icon: Clapperboard },
   { to: "/banners", label: "Banners", icon: GalleryHorizontal },
   { to: "/sections", label: "Sections", icon: LayoutList },
+  { to: "/app-config", label: "App Config", icon: SlidersHorizontal },
   { to: "/providers", label: "Providers", icon: Radio },
   { to: "/users", label: "Admins", icon: Users },
   { to: "/settings", label: "Settings & Log", icon: Settings },
