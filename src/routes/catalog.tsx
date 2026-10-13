@@ -4,6 +4,7 @@ import { Pencil, Plus, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDelete, Empty, Field, OrderButtons, PageHeader, Poster, Ready, Tag } from "@/components/admin/kit";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -72,7 +73,7 @@ function Titles() {
       </div>
       {filtering && <p className="mb-2 text-[11px] text-muted-foreground">Reordering is available when no filter is applied.</p>}
       {filtered.length ? (
-        <ul className="divide-y divide-border rounded-lg border border-border">
+        <ul className="glass divide-y divide-border overflow-hidden rounded-2xl">
           {filtered.map((it) => {
             const idx = items.findIndex((x) => x.id === it.id);
             return (
@@ -84,6 +85,7 @@ function Titles() {
                   <p className="font-mono text-[11px] text-muted-foreground">TMDB {it.tmdbId}{it.year && ` · ${it.year}`}</p>
                   <div className="mt-1 flex gap-1"><Tag>{it.type}</Tag>{it.visibility === "hidden" && <Tag tone="warning">hidden</Tag>}</div>
                 </div>
+                <Switch checked={it.visibility === "visible"} aria-label={`Visible: ${it.title}`} onCheckedChange={(v) => mutate("catalog", (a) => a.map((x) => (x.id === it.id ? { ...x, visibility: v ? "visible" : "hidden" } : x)), v ? "Shown title" : "Hidden title", it.title)} />
                 <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Edit ${it.title}`} onClick={() => setEditing(it)}><Pencil className="h-4 w-4" /></Button>
                 <ConfirmDelete what={it.title} onConfirm={() => mutate("catalog", (a) => a.filter((x) => x.id !== it.id), "Removed title", it.title)} />
               </li>

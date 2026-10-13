@@ -44,7 +44,7 @@ function BannersPage() {
         {s.draft?.banners.length ? (
           <ul className="space-y-2">
             {s.draft.banners.map((b, i, arr) => (
-              <li key={b.id} className="flex items-center gap-3 rounded-lg border border-border p-2">
+              <li key={b.id} className="glass flex items-center gap-3 rounded-2xl p-2">
                 <OrderButtons index={i} length={arr.length} onMove={(d) => mutate("banners", (a) => move(a, i, d), "Reordered banner", b.title)} />
                 <button onClick={() => setPreview(b)} className="relative w-24 shrink-0 overflow-hidden rounded md:w-36" aria-label={`Preview ${b.title}`}>
                   <Poster imageKey={b.imageKey} title={b.title} className="aspect-video w-full" />
