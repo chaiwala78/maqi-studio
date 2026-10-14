@@ -37,8 +37,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen md:pl-56">
       <div className="sticky top-0 z-30 flex items-center justify-between border-b border-warning/20 glass border-x-0 border-t-0 px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-warning">
-        <span>{adminService.mode === "demo" ? "Demo data — not connected to production" : "Live"}</span>
-        <span className="text-muted-foreground md:hidden">MaQi Admin</span>
+        <span className="truncate">{adminService.mode === "demo" ? <><span className="md:hidden">Demo — not live</span><span className="hidden md:inline">Demo data — not connected to production</span></> : "Live"}</span>
+        <span className="shrink-0 text-muted-foreground md:hidden">MaQi Admin</span>
       </div>
 
       {/* Desktop / tablet rail */}
@@ -112,9 +112,9 @@ function PublishBar() {
     <>
       <div className="glass fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 rounded-full border-primary/30 py-1.5 pl-4 pr-1.5 shadow-lg md:inset-x-auto md:bottom-4 md:left-[calc(14rem+1rem)] md:right-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground"><span className="text-foreground">{keys.length}</span> area{keys.length > 1 ? "s" : ""} with unpublished changes</p>
-          <div className="flex gap-2">
-            <Button size="sm" variant="ghost" onClick={() => { discardDraft(); toast("Draft discarded"); }}>Discard</Button>
+          <p className="min-w-0 truncate text-xs text-muted-foreground"><span className="text-foreground">{keys.length}</span> unpublished<span className="hidden sm:inline"> area{keys.length > 1 ? "s" : ""}</span></p>
+          <div className="flex shrink-0 gap-1">
+            <Button size="sm" variant="ghost" className="rounded-full" onClick={() => { discardDraft(); toast("Draft discarded"); }}>Discard</Button>
             <Button size="sm" className="rounded-full" onClick={() => setOpen(true)}>Review</Button>
           </div>
         </div>

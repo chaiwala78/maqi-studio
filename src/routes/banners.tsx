@@ -46,12 +46,13 @@ function BannersPage() {
             {s.draft.banners.map((b, i, arr) => (
               <li key={b.id} className="glass flex items-center gap-3 rounded-2xl p-2">
                 <OrderButtons index={i} length={arr.length} onMove={(d) => mutate("banners", (a) => move(a, i, d), "Reordered banner", b.title)} />
-                <button onClick={() => setPreview(b)} className="relative w-24 shrink-0 overflow-hidden rounded md:w-36" aria-label={`Preview ${b.title}`}>
+                <button onClick={() => setPreview(b)} className="relative w-16 shrink-0 overflow-hidden rounded sm:w-24 md:w-36" aria-label={`Preview ${b.title}`}>
                   <Poster imageKey={b.imageKey} title={b.title} className="aspect-video w-full" />
                 </button>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{i + 1}. {b.title}</p>
-                  <p className="font-mono text-[11px] text-muted-foreground">TMDB {b.tmdbId} · {b.type}</p>
+                  <p className="truncate font-mono text-[11px] text-muted-foreground">TMDB {b.tmdbId}</p>
+                  <p className="text-[11px] capitalize text-muted-foreground">{b.type}</p>
                 </div>
                 <Switch checked={b.enabled} aria-label="Enabled" onCheckedChange={(v) => mutate("banners", (a) => a.map((x) => (x.id === b.id ? { ...x, enabled: v } : x)), v ? "Enabled banner" : "Disabled banner", b.title)} />
                 <div className="flex flex-col md:flex-row">
