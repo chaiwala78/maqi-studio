@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Clapperboard, GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, Loader2, SlidersHorizontal,
+  Clapperboard, GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, Loader2, SlidersHorizontal, Database,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -20,6 +20,7 @@ const NAV = [
   { to: "/providers", label: "Providers", icon: Radio },
   { to: "/users", label: "Admins", icon: Users },
   { to: "/settings", label: "Settings & Log", icon: Settings },
+  { to: "/live-config", label: "Live KV Config", icon: Database },
 ] as const;
 
 const KEY_LABEL: Record<DataKey, string> = {

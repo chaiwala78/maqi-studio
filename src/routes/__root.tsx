@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { AppShell } from "@/components/admin/AppShell";
+import { AdminAuthGate } from "@/components/admin/AdminAuthGate";
 import { Toaster } from "@/components/ui/sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -122,9 +123,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <AppShell>
-        <Outlet />
-      </AppShell>
+      <AdminAuthGate>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      </AdminAuthGate>
       <Toaster theme="dark" position="top-center" />
     </QueryClientProvider>
   );
