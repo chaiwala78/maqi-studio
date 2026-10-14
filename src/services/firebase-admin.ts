@@ -24,7 +24,7 @@ function notify() { listeners.forEach((listener) => listener(currentUser)); }
 async function getIdToken(): Promise<string> {
   if (idToken && Date.now() < expiresAt - 60_000) return idToken;
   if (!refreshToken) throw new Error("Session expired. Sign in again.");
-  const response = await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(config.apiKey)}`, {
+  const response = await fetch(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(config.apiKey ?? "")}`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: refreshToken }),
