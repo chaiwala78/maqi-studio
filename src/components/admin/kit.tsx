@@ -97,7 +97,7 @@ export function Tag({ children, tone = "muted" }: { children: ReactNode; tone?: 
     success: "border-success/40 text-success",
     warning: "border-warning/40 text-warning",
   };
-  return <span className={cn("inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider", tones[tone])}>{children}</span>;
+  return <span className={cn("inline-flex shrink-0 items-center whitespace-nowrap rounded border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider", tones[tone])}>{children}</span>;
 }
 
 /** Renders loading / error states until the store is ready. */

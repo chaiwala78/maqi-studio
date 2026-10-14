@@ -82,7 +82,7 @@ function Titles() {
                 <Poster imageKey={it.imageKey} title={it.title} className="w-11" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{it.title}</p>
-                  <p className="font-mono text-[11px] text-muted-foreground">TMDB {it.tmdbId}{it.year && ` · ${it.year}`}</p>
+                  <p className="truncate font-mono text-[11px] text-muted-foreground">TMDB {it.tmdbId}{it.year && ` · ${it.year}`}</p>
                   <div className="mt-1 flex gap-1"><Tag>{it.type}</Tag>{it.visibility === "hidden" && <Tag tone="warning">hidden</Tag>}</div>
                 </div>
                 <Switch checked={it.visibility === "visible"} aria-label={`Visible: ${it.title}`} onCheckedChange={(v) => mutate("catalog", (a) => a.map((x) => (x.id === it.id ? { ...x, visibility: v ? "visible" : "hidden" } : x)), v ? "Shown title" : "Hidden title", it.title)} />
