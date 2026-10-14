@@ -82,7 +82,6 @@ function LiveConfigPage() {
       setError("Invalid JSON. Fix the JSON before saving.");
       return;
     }
-    const existing = configs[selected];
     if (!window.confirm(`Replace the entire KV value for "${selected}"? This writes to the live Worker configuration.`)) return;
     setBusy(true);
     setError("");
