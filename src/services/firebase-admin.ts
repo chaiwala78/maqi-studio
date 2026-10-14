@@ -4,15 +4,15 @@ export interface User {
 }
 
 type Listener = (user: User | null) => void;
+// This app uses Firebase's Auth REST endpoints directly, so only the project API key
+// and project ID are required. No Firebase Web App ID is needed for this flow.
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
-export const firebaseConfigured = Object.values(config).every(
-  (value) => typeof value === "string" && value.length > 0,
-);
+export const firebaseConfigured =
+  typeof config.apiKey === "string" && config.apiKey.length > 0 &&
+  typeof config.projectId === "string" && config.projectId.length > 0;
 
 let idToken = "";
 let refreshToken = "";
@@ -49,7 +49,7 @@ export function onAuthStateChanged(_auth: unknown, listener: Listener) {
 
 export async function signInWithEmailAndPassword(_auth: unknown, email: string, password: string) {
   if (!firebaseConfigured) throw new Error("Firebase client config missing");
-  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(config.apiKey)}`, {
+  const response = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(config.apiKey ?? "")}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password, returnSecureToken: true }),
