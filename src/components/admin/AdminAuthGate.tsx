@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import {
   adminAuth,
   firebaseConfigured,
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LockKeyhole, LogOut } from "lucide-react";
 
-export function AdminAuthGate({ children }: { children: React.ReactNode }) {
+export function AdminAuthGate({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState("");
