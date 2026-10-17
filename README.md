@@ -1,6 +1,6 @@
 # MaQi Studio
 
-Build a premium, mobile-first MaQi Admin Panel for managing my existing MaQi Android OTT app.
+Build a premium, mobile-first MaQi Admin Panel for managing my existing MaQi Android OTT app hai.
 
 
 
