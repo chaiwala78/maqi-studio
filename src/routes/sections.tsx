@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Layers, Palette, Pencil, Plus, Settings2, Sparkles, X } from "lucide-react";
+import { Layers, Palette, Pencil, Plus, Settings2, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDelete, Empty, Field, OrderButtons, PageHeader, Ready, Tag } from "@/components/admin/kit";
 import { Button } from "@/components/ui/button";
@@ -13,18 +13,18 @@ import type { CuratedList, HomeSection } from "@/services/types";
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/sections")({
-  head: pageHead("Sections & Collections", "Manage dynamic home sections and curated movie/series collections for MaQi."),
-  component: SectionsAndCollectionsPage,
+  head: pageHead("Sections & Curated", "Manage dynamic home categories and curated collections for MaQi."),
+  component: SectionsPage,
 });
 
-function SectionsAndCollectionsPage() {
+function SectionsPage() {
   const s = useAdmin();
-  const [activeTab, setActiveTab] = useState<"sections" | "curated">("sections");
+  const [tab, setTab] = useState<"sections" | "curated">("sections");
   const [editingSection, setEditingSection] = useState<HomeSection | null>(null);
   const [editingCollection, setEditingCollection] = useState<CuratedList | null>(null);
 
-  const curatedCount = s.draft?.curated?.length ?? 0;
   const sectionsCount = s.draft?.sections?.length ?? 0;
+  const curatedCount = s.draft?.curated?.length ?? 0;
 
   return (
     <>
@@ -32,7 +32,23 @@ function SectionsAndCollectionsPage() {
         eyebrow="Home Screen Layout"
         title="Sections & Collections"
         action={
-          activeTab === "curated" ? (
+          tab === "sections" ? (
+            <Button
+              onClick={() =>
+                setEditingSection({
+                  id: `sec_${uid()}`,
+                  key: "",
+                  title: "",
+                  enabled: true,
+                  badge: "",
+                  card_type: "STANDARD",
+                  config: { itemLimit: 20, source: "/discover/movie?sort_by=popularity.desc" },
+                })
+              }
+            >
+              <Plus className="mr-1.5 h-4 w-4" /> Add Section
+            </Button>
+          ) : (
             <Button
               onClick={() =>
                 setEditingCollection({
@@ -47,16 +63,16 @@ function SectionsAndCollectionsPage() {
                 })
               }
             >
-              <Plus className="mr-1 h-4 w-4" /> Add Collection
+              <Plus className="mr-1.5 h-4 w-4" /> Add Collection
             </Button>
-          ) : undefined
+          )
         }
       >
-        Configure how categories, genres, and special thematic curated collections appear on the MaQi mobile app.
+        Manage both dynamic TMDB/Worker home sections and special curated movie/series spotlight collections.
       </PageHeader>
 
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-4">
-        <TabsList className="glass">
+      <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="space-y-4">
+        <TabsList className="glass grid w-full grid-cols-2">
           <TabsTrigger value="sections" className="gap-2">
             <Layers className="h-4 w-4" />
             <span>Home Sections</span>
@@ -69,13 +85,13 @@ function SectionsAndCollectionsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* TAB 1: HOME SECTIONS */}
+        {/* ================= TAB 1: HOME SECTIONS ================= */}
         <TabsContent value="sections">
           <Ready>
             {s.draft?.sections.length ? (
-              <ul className="glass divide-y divide-border overflow-hidden rounded-2xl">
+              <ul className="space-y-2.5">
                 {s.draft.sections.map((x, i, arr) => (
-                  <li key={x.id} className="flex items-center gap-3 px-3 py-3.5">
+                  <li key={x.id} className="glass flex items-center gap-3 rounded-2xl p-3.5">
                     <OrderButtons
                       index={i}
                       length={arr.length}
@@ -83,37 +99,65 @@ function SectionsAndCollectionsPage() {
                     />
                     <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{x.title}</p>
-                      <p className="truncate font-mono text-[11px] text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold">{x.title}</p>
+                        {x.badge && (
+                          <span className="rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary uppercase">
+                            {x.badge}
+                          </span>
+                        )}
+                        {!x.enabled && <Tag tone="warning">Hidden</Tag>}
+                      </div>
+                      <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
                         {x.key} · {x.config.source} · max {x.config.itemLimit} items
                       </p>
                     </div>
+
                     <Switch
                       checked={x.enabled}
                       aria-label="Enabled"
                       onCheckedChange={(v) =>
-                        mutate("sections", (a) => a.map((y) => (y.id === x.id ? { ...y, enabled: v } : y)), v ? "Enabled section" : "Disabled section", x.title)
+                        mutate(
+                          "sections",
+                          (a) => a.map((y) => (y.id === x.id ? { ...y, enabled: v } : y)),
+                          v ? "Enabled section" : "Disabled section",
+                          x.title
+                        )
                       }
                     />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      aria-label="Configure"
-                      onClick={() => setEditingSection(x)}
-                    >
-                      <Settings2 className="h-4 w-4" />
-                    </Button>
+
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        aria-label="Edit"
+                        onClick={() => setEditingSection(x)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <ConfirmDelete
+                        what={x.title}
+                        onConfirm={() =>
+                          mutate(
+                            "sections",
+                            (a) => a.filter((y) => y.id !== x.id),
+                            "Deleted section",
+                            x.title
+                          )
+                        }
+                      />
+                    </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <Empty>No sections found in configuration.</Empty>
+              <Empty>No home sections found. Tap 'Add Section' above to create one.</Empty>
             )}
           </Ready>
         </TabsContent>
 
-        {/* TAB 2: CURATED COLLECTIONS */}
+        {/* ================= TAB 2: CURATED COLLECTIONS ================= */}
         <TabsContent value="curated">
           <Ready>
             {s.draft?.curated.length ? (
@@ -145,6 +189,7 @@ function SectionsAndCollectionsPage() {
                             </span>
                           )}
                           <Tag tone="neutral">{col.tmdbIds.length} titles</Tag>
+                          {col.enabled === false && <Tag tone="warning">Hidden</Tag>}
                         </div>
 
                         {col.description && (
@@ -208,14 +253,18 @@ function SectionsAndCollectionsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* SECTION EDITOR SHEET */}
+      {/* SECTION MODAL (ADD / EDIT) */}
       {editingSection && (
-        <SectionEditor key={editingSection.id} item={editingSection} onClose={() => setEditingSection(null)} />
+        <SectionEditorModal
+          key={editingSection.id}
+          item={editingSection}
+          onClose={() => setEditingSection(null)}
+        />
       )}
 
-      {/* CURATED COLLECTION EDITOR SHEET */}
+      {/* CURATED COLLECTION MODAL (ADD / EDIT) */}
       {editingCollection && (
-        <CuratedCollectionEditor
+        <CuratedCollectionModal
           key={editingCollection.id}
           item={editingCollection}
           onClose={() => setEditingCollection(null)}
@@ -225,47 +274,126 @@ function SectionsAndCollectionsPage() {
   );
 }
 
-function SectionEditor({ item, onClose }: { item: HomeSection; onClose: () => void }) {
-  const [limit, setLimit] = useState(String(item.config.itemLimit));
-  const [source, setSource] = useState(item.config.source);
+function SectionEditorModal({
+  item,
+  onClose,
+}: {
+  item: HomeSection;
+  onClose: () => void;
+}) {
+  const [title, setTitle] = useState(item.title);
+  const [key, setKey] = useState(item.key);
+  const [limit, setLimit] = useState(String(item.config.itemLimit || 20));
+  const [source, setSource] = useState(item.config.source || "");
+  const [badge, setBadge] = useState(item.badge || "");
+  const [cardType, setCardType] = useState(item.card_type || "STANDARD");
 
   function save(): void {
+    if (!title.trim()) {
+      toast.error("Section title is required.");
+      return;
+    }
+    const cleanKey = key.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, "_");
     const n = Number(limit);
     if (!Number.isInteger(n) || n < 1 || n > 100) {
       toast.error("Item limit must be 1–100.");
       return;
     }
-    if (!source.trim() || source.length > 150) {
-      toast.error("Source is required.");
+    if (!source.trim()) {
+      toast.error("Backend source endpoint is required.");
       return;
     }
+
+    const updated: HomeSection = {
+      id: item.id || cleanKey,
+      key: cleanKey,
+      title: title.trim(),
+      enabled: item.enabled !== false,
+      badge: badge.trim(),
+      card_type: cardType,
+      config: {
+        itemLimit: n,
+        source: source.trim(),
+      },
+    };
+
     mutate(
       "sections",
-      (a) =>
-        a.map((y) =>
-          y.id === item.id ? { ...y, config: { itemLimit: n, source: source.trim() } } : y
-        ),
-      "Configured section",
-      item.title
+      (a) => {
+        const exists = a.some((x) => x.id === item.id);
+        if (exists) {
+          return a.map((x) => (x.id === item.id ? updated : x));
+        }
+        return [...a, updated];
+      },
+      item.title ? "Updated section" : "Added new section",
+      updated.title
     );
+
     toast.success("Saved to draft");
     onClose();
   }
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="bottom" className="mx-auto max-w-lg rounded-t-2xl">
+      <SheetContent side="bottom" className="mx-auto max-w-lg max-h-[85vh] overflow-y-auto rounded-t-2xl">
         <SheetHeader>
-          <SheetTitle>{item.title}</SheetTitle>
-          <SheetDescription className="font-mono text-xs">{item.key} (read-only)</SheetDescription>
+          <SheetTitle>{item.title ? `Edit: ${item.title}` : "Add New Home Section"}</SheetTitle>
+          <SheetDescription>Configure dynamic movies and web series shelf on the home screen.</SheetDescription>
         </SheetHeader>
-        <div className="space-y-4 px-4 pb-6 pt-2">
-          <Field label="Item limit">
-            <Input inputMode="numeric" value={limit} onChange={(e) => setLimit(e.target.value)} />
+        <div className="space-y-4 px-4 pb-6 pt-3">
+          <Field label="Section Title">
+            <Input
+              placeholder="e.g. ⚡ Action Hits or South Blockbusters"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </Field>
-          <Field label="Endpoint Source" hint="Backend TMDB endpoint or internal route.">
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Section ID / Key" hint="Internal key for app">
+              <Input
+                placeholder="action_hits"
+                className="font-mono text-xs"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+              />
+            </Field>
+
+            <Field label="Item Limit" hint="Max titles loaded (1–100)">
+              <Input inputMode="numeric" value={limit} onChange={(e) => setLimit(e.target.value)} />
+            </Field>
+          </div>
+
+          <Field
+            label="Backend Source Endpoint"
+            hint="TMDB discover route or backend proxy endpoint (e.g. /discover/movie?with_genres=28&sort_by=popularity.desc)"
+          >
             <Input className="font-mono text-xs" value={source} onChange={(e) => setSource(e.target.value)} />
           </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Badge Label (Optional)" hint="e.g. HOT, NEW, 4K">
+              <Input
+                placeholder="HOT"
+                className="uppercase text-xs"
+                value={badge}
+                onChange={(e) => setBadge(e.target.value)}
+              />
+            </Field>
+
+            <Field label="Card Style">
+              <select
+                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={cardType}
+                onChange={(e) => setCardType(e.target.value)}
+              >
+                <option value="STANDARD">STANDARD (Vertical Poster)</option>
+                <option value="SMALL">SMALL (Compact)</option>
+              </select>
+            </Field>
+          </div>
+
           <div className="flex gap-2 pt-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>
               Cancel
@@ -280,7 +408,7 @@ function SectionEditor({ item, onClose }: { item: HomeSection; onClose: () => vo
   );
 }
 
-function CuratedCollectionEditor({
+function CuratedCollectionModal({
   item,
   onClose,
 }: {
@@ -338,9 +466,9 @@ function CuratedCollectionEditor({
     <Sheet open onOpenChange={(o) => !o && onClose()}>
       <SheetContent side="bottom" className="mx-auto max-w-xl max-h-[85vh] overflow-y-auto rounded-t-2xl">
         <SheetHeader>
-          <SheetTitle>{item.name ? `Edit: ${item.name}` : "New Curated Collection"}</SheetTitle>
+          <SheetTitle>{item.name ? `Edit: ${item.name}` : "Add New Curated Collection"}</SheetTitle>
           <SheetDescription>
-            Curated collections appear as featured shelves on the MaQi mobile home screen.
+            Curated collections appear as featured shelves and ranking lists on the mobile home screen.
           </SheetDescription>
         </SheetHeader>
 

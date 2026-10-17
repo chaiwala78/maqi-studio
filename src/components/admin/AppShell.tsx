@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  Clapperboard, GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, Loader2, SlidersHorizontal,
+  GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -13,17 +13,16 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/", label: "Overview", icon: LayoutGrid },
-  { to: "/catalog", label: "Catalog", icon: Clapperboard },
-  { to: "/banners", label: "Banners", icon: GalleryHorizontal },
   { to: "/sections", label: "Sections", icon: LayoutList },
-  { to: "/app-config", label: "App Config", icon: SlidersHorizontal },
+  { to: "/banners", label: "Banners", icon: GalleryHorizontal },
   { to: "/providers", label: "Providers", icon: Radio },
+  { to: "/app-config", label: "App Config", icon: SlidersHorizontal },
   { to: "/users", label: "Admins", icon: Users },
   { to: "/settings", label: "Settings & Log", icon: Settings },
 ] as const;
 
 const KEY_LABEL: Record<DataKey, string> = {
-  catalog: "Catalog", curated: "Curated anime lists", banners: "Hero banners",
+  catalog: "Catalog", curated: "Curated collections", banners: "Hero banners",
   sections: "Home sections", providers: "Streaming providers", admins: "Admins",
 };
 
@@ -37,7 +36,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen md:pl-56">
       <div className="sticky top-0 z-30 flex items-center justify-between border-b border-warning/20 glass border-x-0 border-t-0 px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-warning">
-        <span className="truncate">{adminService.mode === "demo" ? <><span className="md:hidden">Demo — not live</span><span className="hidden md:inline">Demo data — not connected to production</span></> : "Live"}</span>
+        <span className="truncate">{adminService.mode === "demo" ? <><span className="md:hidden">Demo — not live</span><span className="hidden md:inline">Demo data — not connected to production</span></> : "Live Cloudflare Edge"}</span>
         <span className="shrink-0 text-muted-foreground md:hidden">MaQi Admin</span>
       </div>
 
@@ -60,7 +59,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <PublishBar />
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav - Exactly 5 items: Overview, Sections, Banners, Providers, More */}
       <nav className="glass fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-5 rounded-2xl shadow-lg md:hidden">
         {NAV.slice(0, 4).map((n) => (
           <Link key={n.to} to={n.to} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground", isActive(n.to) && "text-foreground")}>
@@ -115,30 +114,26 @@ function PublishBar() {
           <p className="min-w-0 truncate text-xs text-muted-foreground"><span className="text-foreground">{keys.length}</span> unpublished<span className="hidden sm:inline"> area{keys.length > 1 ? "s" : ""}</span></p>
           <div className="flex shrink-0 gap-1">
             <Button size="sm" variant="ghost" className="rounded-full" onClick={() => { discardDraft(); toast("Draft discarded"); }}>Discard</Button>
-            <Button size="sm" className="rounded-full" onClick={() => setOpen(true)}>Review</Button>
+            <Button size="sm" className="rounded-full" onClick={() => setOpen(true)}>Review & Publish</Button>
           </div>
         </div>
       </div>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="mx-auto max-w-lg rounded-t-xl">
-          <SheetHeader>
-            <SheetTitle>Review & publish</SheetTitle>
-            <SheetDescription>These areas differ from the last published configuration.</SheetDescription>
-          </SheetHeader>
-          <ul className="space-y-1 px-4">
-            {keys.map((k) => (
-              <li key={k} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
-                {KEY_LABEL[k]}
-                <span className="font-mono text-[11px] text-muted-foreground">{s.published![k].length} → {s.draft![k].length} items</span>
-              </li>
-            ))}
-          </ul>
-          {adminService.mode === "demo" && (
-            <p className="mx-4 rounded-md border border-warning/30 px-3 py-2 text-xs text-warning">Demo mode: publishing will not contact any Worker or KV.</p>
-          )}
-          <div className="flex gap-2 p-4">
-            <Button variant="secondary" className="flex-1" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button className="flex-1" disabled={busy} onClick={confirm}>{busy && <Loader2 className="h-4 w-4 animate-spin" />} Confirm publish</Button>
+        <SheetContent side="bottom" className="glass mx-auto max-w-lg rounded-t-2xl">
+          <SheetHeader><SheetTitle>Review Changes</SheetTitle><SheetDescription>The following areas have unsaved draft modifications:</SheetDescription></SheetHeader>
+          <div className="space-y-4 px-4 pb-6 pt-3">
+            <ul className="divide-y divide-border rounded-xl border border-border">
+              {keys.map((k) => (
+                <li key={k} className="flex items-center justify-between px-3 py-2 text-sm">
+                  <span>{KEY_LABEL[k]}</span>
+                  <span className="font-mono text-xs text-primary">MODIFIED</span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex gap-2">
+              <Button variant="secondary" className="flex-1" onClick={() => setOpen(false)}>Continue Editing</Button>
+              <Button className="flex-1" disabled={busy} onClick={confirm}>{busy ? "Publishing..." : "Confirm & Publish"}</Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>

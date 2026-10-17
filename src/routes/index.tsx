@@ -7,9 +7,9 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Overview — MaQi Admin" },
-      { name: "description", content: "Status of MaQi catalog, banners, sections and providers." },
+      { name: "description", content: "Status of MaQi sections, curated collections, banners and providers." },
       { property: "og:title", content: "Overview — MaQi Admin" },
-      { property: "og:description", content: "Status of MaQi catalog, banners, sections and providers." },
+      { property: "og:description", content: "Status of MaQi sections, curated collections, banners and providers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -26,7 +26,7 @@ function Overview() {
         {s.draft && (() => {
           const d = s.draft;
           const stats = [
-            { to: "/catalog", label: "Catalog titles", value: d.catalog.length, sub: `${d.catalog.filter((c) => c.visibility === "visible").length} visible` },
+            { to: "/sections", label: "Curated Collections", value: d.curated.length, sub: `${d.curated.filter((c) => c.enabled !== false).length} active` },
             { to: "/banners", label: "Hero banners", value: d.banners.filter((b) => b.enabled).length, sub: `of ${d.banners.length} active` },
             { to: "/sections", label: "Home sections", value: d.sections.filter((x) => x.enabled).length, sub: `of ${d.sections.length} enabled` },
             { to: "/providers", label: "Providers", value: d.providers.filter((p) => p.enabled).length, sub: `of ${d.providers.length} enabled` },
@@ -48,7 +48,7 @@ function Overview() {
               )}
               <div className="grid grid-cols-2 gap-px overflow-hidden glass rounded-2xl bg-border md:grid-cols-4">
                 {stats.map((x) => (
-                  <Link key={x.to} to={x.to} className="bg-background p-4 hover:bg-card">
+                  <Link key={x.label} to={x.to} className="bg-background p-4 hover:bg-card">
                     <p className="eyebrow">{x.label}</p>
                     <p className="mt-2 font-display text-3xl font-semibold">{x.value}</p>
                     <p className="text-xs text-muted-foreground">{x.sub}</p>
@@ -58,22 +58,6 @@ function Overview() {
               <p className="text-sm text-muted-foreground">
                 {pending ? <><span className="text-foreground">{pending}</span> area(s) have unpublished draft changes.</> : "No unpublished changes."}
               </p>
-              <section>
-                <div className="mb-2 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold">Recent activity</h2>
-                  <Link to="/settings" className="flex items-center text-xs text-muted-foreground hover:text-foreground">Full log <ChevronRight className="h-3 w-3" /></Link>
-                </div>
-                {s.log.length ? (
-                  <ul className="divide-y divide-border glass rounded-2xl">
-                    {s.log.slice(0, 5).map((l) => (
-                      <li key={l.id} className="flex justify-between gap-3 px-3 py-2.5 text-sm">
-                        <span><span className="text-muted-foreground">{l.action}</span> {l.target}</span>
-                        <time className="shrink-0 font-mono text-[11px] text-muted-foreground">{new Date(l.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
-                      </li>
-                    ))}
-                  </ul>
-                ) : <p className="text-sm text-muted-foreground">No changes yet in this session.</p>}
-              </section>
             </div>
           );
         })()}

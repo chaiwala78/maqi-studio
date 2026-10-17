@@ -47,6 +47,8 @@ export const liveWorkerAdminService: AdminService = {
         key: sec.id || `key_${idx}`,
         title: sec.title || `Section ${idx + 1}`,
         enabled: sec.enabled !== false,
+        badge: sec.badge || "",
+        card_type: sec.card_type || "STANDARD",
         config: {
           itemLimit: sec.limit || 20,
           source: sec.endpoint || "trending",
@@ -113,6 +115,8 @@ export const liveWorkerAdminService: AdminService = {
         id: s.key || s.id,
         title: s.title,
         endpoint: s.config.source,
+        badge: s.badge ? s.badge.trim() : null,
+        card_type: s.card_type || "STANDARD",
         enabled: s.enabled,
       }));
 

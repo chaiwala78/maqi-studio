@@ -35,11 +35,11 @@ export interface HeroBanner {
 
 export interface HomeSection {
   id: string;
-  /** Key used by the app — read-only in the panel. */
   key: string;
-  /** Title as shown in the app — never renamed automatically. */
   title: string;
   enabled: boolean;
+  badge?: string;
+  card_type?: string;
   config: { itemLimit: number; source: string };
 }
 
