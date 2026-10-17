@@ -1,6 +1,3 @@
-// PROVISIONAL types. These are NOT verified against the real MaQi Worker / KV JSON.
-// Replace with the actual schemas once the backend source has been inspected.
-
 export type ContentType = "anime" | "movie" | "series";
 export type Visibility = "visible" | "hidden";
 
@@ -19,6 +16,10 @@ export interface CuratedList {
   id: string;
   name: string;
   description: string;
+  badge?: string;
+  bannerImage?: string;
+  themeColor?: string;
+  enabled?: boolean;
   tmdbIds: string[];
 }
 

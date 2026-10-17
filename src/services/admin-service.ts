@@ -58,6 +58,10 @@ export const liveWorkerAdminService: AdminService = {
         id: col.id || `col_${idx}`,
         name: col.title || col.name || `Collection ${idx + 1}`,
         description: col.subtitle || "",
+        badge: col.badge || "",
+        bannerImage: col.banner_image || "",
+        themeColor: col.theme_color || "#E50914",
+        enabled: col.enabled !== false,
         tmdbIds: (col.items || []).map((item: any) => String(item.tmdb_id || item.id)),
       }));
 
@@ -116,10 +120,15 @@ export const liveWorkerAdminService: AdminService = {
       const curated_collections = data.curated.map((c) => ({
         id: c.id,
         title: c.name,
-        subtitle: c.description,
+        subtitle: c.description || "",
+        badge: c.badge || "",
+        banner_image: c.bannerImage || "",
+        theme_color: c.themeColor || "#E50914",
+        enabled: c.enabled !== false,
         items: c.tmdbIds.map((id, idx) => ({
-          tmdb_id: parseInt(id, 10) || 0,
+          tmdb_id: parseInt(id.trim(), 10) || 0,
           media_type: "movie",
+          type: "movie",
           custom_badge: `RANK #${idx + 1}`,
         })),
       }));
