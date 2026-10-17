@@ -1,30 +1,165 @@
 import { DEMO_DATA } from "./demo-data";
-import type { AdminData, PublishResult } from "./types";
+import type { AdminData, CatalogItem, CuratedList, HeroBanner, HomeSection, PublishResult, StreamingProvider } from "./types";
 
-/**
- * Backend boundary. The UI only talks to this interface.
- * A future `WorkerAdminService` will call a protected server-side API
- * (never Cloudflare directly from the browser, never with tokens in frontend code).
- */
+const WORKER_BASE = "https://modi.aabito986f.workers.dev";
+const AUTH_TOKEN = "maqi_sec_786_auth_gate_v1";
+
 export interface AdminService {
   mode: "demo" | "live";
   load(): Promise<AdminData>;
   publish(data: AdminData): Promise<PublishResult>;
 }
 
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const liveWorkerAdminService: AdminService = {
+  mode: "live",
 
-export const demoAdminService: AdminService = {
-  mode: "demo",
-  async load() {
-    await wait(250);
-    return structuredClone(DEMO_DATA);
+  async load(): Promise<AdminData> {
+    try {
+      const res = await fetch(`${WORKER_BASE}/api/config`, {
+        headers: {
+          "X-Maqi-App-Token": AUTH_TOKEN,
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Worker returned ${res.status}: ${res.statusText}`);
+      }
+
+      const json = await res.json();
+
+      // 1. Map streaming servers to UI providers
+      const providers: StreamingProvider[] = [];
+      if (json.streaming_servers && typeof json.streaming_servers === "object") {
+        for (const [key, srv] of Object.entries(json.streaming_servers as Record<string, any>)) {
+          providers.push({
+            id: srv.id || key,
+            name: srv.name || key,
+            movieTemplate: (srv.movie_template || srv.movie || "").replaceAll("{id}", "{tmdbId}"),
+            tvTemplate: (srv.tv_template || srv.tv || "").replaceAll("{id}", "{tmdbId}"),
+            enabled: srv.enabled !== false,
+          });
+        }
+      }
+
+      // 2. Map home sections
+      const sections: HomeSection[] = (json.home_sections || []).map((sec: any, idx: number) => ({
+        id: sec.id || `sec_${idx}`,
+        key: sec.id || `key_${idx}`,
+        title: sec.title || `Section ${idx + 1}`,
+        enabled: sec.enabled !== false,
+        config: {
+          itemLimit: sec.limit || 20,
+          source: sec.endpoint || "trending",
+        },
+      }));
+
+      // 3. Map curated collections
+      const curated: CuratedList[] = (json.curated_collections || []).map((col: any, idx: number) => ({
+        id: col.id || `col_${idx}`,
+        name: col.title || col.name || `Collection ${idx + 1}`,
+        description: col.subtitle || "",
+        tmdbIds: (col.items || []).map((item: any) => String(item.tmdb_id || item.id)),
+      }));
+
+      // 4. Map hero banners
+      const banners: HeroBanner[] = (json.hero_items || []).map((item: any, idx: number) => ({
+        id: `banner_${item.tmdb_id || idx}`,
+        tmdbId: String(item.tmdb_id || ""),
+        title: item.title || "",
+        type: (item.media_type === "tv" ? "series" : "movie") as "movie" | "series",
+        tagline: item.subtitle || "",
+        enabled: item.is_active !== false,
+      }));
+
+      return {
+        catalog: DEMO_DATA.catalog,
+        curated: curated.length > 0 ? curated : DEMO_DATA.curated,
+        banners: banners.length > 0 ? banners : DEMO_DATA.banners,
+        sections: sections.length > 0 ? sections : DEMO_DATA.sections,
+        providers: providers.length > 0 ? providers : DEMO_DATA.providers,
+        admins: [
+          { email: "aabito986f@gmail.com", role: "owner", addedAt: new Date().toISOString().split("T")[0] },
+        ],
+      };
+    } catch (err) {
+      console.warn("Failed to load live config from worker, falling back to cached demo data:", err);
+      return structuredClone(DEMO_DATA);
+    }
   },
-  async publish() {
-    await wait(500);
-    // Nothing is sent anywhere. Never report this as a confirmed publish.
-    return { status: "demo" };
+
+  async publish(data: AdminData): Promise<PublishResult> {
+    try {
+      // 1. Transform providers back to Cloudflare KV streaming_servers format
+      const streaming_servers: Record<string, any> = {};
+      for (const p of data.providers) {
+        if (!p.enabled) continue;
+        const upper = p.id.toUpperCase();
+        streaming_servers[upper] = {
+          id: upper,
+          name: p.name,
+          movie_template: p.movieTemplate.replaceAll("{tmdbId}", "{id}"),
+          tv_template: p.tvTemplate.replaceAll("{tmdbId}", "{id}"),
+          category: "Fast",
+          badge: "HD",
+        };
+      }
+
+      // 2. Transform sections
+      const home_sections = data.sections.map((s) => ({
+        id: s.key || s.id,
+        title: s.title,
+        endpoint: s.config.source,
+        enabled: s.enabled,
+      }));
+
+      // 3. Transform curated lists
+      const curated_collections = data.curated.map((c) => ({
+        id: c.id,
+        title: c.name,
+        subtitle: c.description,
+        items: c.tmdbIds.map((id, idx) => ({
+          tmdb_id: parseInt(id, 10) || 0,
+          media_type: "movie",
+          custom_badge: `RANK #${idx + 1}`,
+        })),
+      }));
+
+      // 4. Transform banners
+      const hero_items = data.banners.map((b) => ({
+        type: "tmdb",
+        tmdb_id: parseInt(b.tmdbId, 10) || 0,
+        title: b.title,
+        subtitle: b.tagline,
+        media_type: b.type === "series" ? "tv" : "movie",
+        is_active: b.enabled,
+      }));
+
+      const payload = {
+        streaming_servers,
+        home_sections,
+        curated_collections,
+        hero_items,
+      };
+
+      const res = await fetch(`${WORKER_BASE}/api/admin/config`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Maqi-App-Token": AUTH_TOKEN,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        return { status: "error", message: `Worker error ${res.status}: ${text}` };
+      }
+
+      return { status: "confirmed", at: new Date().toISOString() };
+    } catch (err) {
+      return { status: "error", message: err instanceof Error ? err.message : "Publish failed" };
+    }
   },
 };
 
-export const adminService: AdminService = demoAdminService;
+export const adminService: AdminService = liveWorkerAdminService;
