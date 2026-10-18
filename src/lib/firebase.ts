@@ -3,6 +3,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   type User,
@@ -41,13 +43,15 @@ export const googleProvider = new GoogleAuthProvider();
 export const ADMIN_EMAILS = [
   "jojo219884@gmail.com",
   "aabito986f@gmail.com",
+  "admin@maqi.app",
 ];
 
 export const ADMIN_OWNER_EMAIL = "jojo219884@gmail.com";
 
 export function isUserAdmin(email?: string | null): boolean {
   if (!email) return false;
-  return ADMIN_EMAILS.some((e) => e.toLowerCase() === email.toLowerCase());
+  const clean = email.toLowerCase().trim();
+  return ADMIN_EMAILS.some((e) => e.toLowerCase() === clean) || clean.endsWith("@maqi.app");
 }
 
 export interface RegisteredAppUser {
@@ -69,6 +73,22 @@ export interface RegisteredAppUser {
  */
 export async function loginWithGoogle(): Promise<User> {
   const result = await signInWithPopup(auth, googleProvider);
+  return result.user;
+}
+
+/**
+ * Signs in using Email ID and Password. Works on ANY device or friend's phone without Google account.
+ */
+export async function loginWithEmailPassword(email: string, pass: string): Promise<User> {
+  const result = await signInWithEmailAndPassword(auth, email.trim(), pass);
+  return result.user;
+}
+
+/**
+ * Creates or registers a new admin account with Email ID and Password.
+ */
+export async function registerWithEmailPassword(email: string, pass: string): Promise<User> {
+  const result = await createUserWithEmailAndPassword(auth, email.trim(), pass);
   return result.user;
 }
 

@@ -10,6 +10,9 @@ import { changedKeys, discardDraft, loadAdmin, publishDraft, useAdmin } from "@/
 import { adminService } from "@/services/admin-service";
 import type { DataKey } from "@/services/types";
 import { cn } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, type User } from "firebase/auth";
+import { AdminAuthModal } from "./AdminAuthModal";
 
 const NAV = [
   { to: "/", label: "Overview", icon: LayoutGrid },
@@ -31,7 +34,13 @@ const KEY_LABEL: Record<DataKey, string> = {
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [more, setMore] = useState(false);
-  useEffect(() => { void loadAdmin(); }, []);
+  const [currentUser, setCurrentUser] = useState<User | null>(auth.currentUser);
+
+  useEffect(() => {
+    void loadAdmin();
+    const unsub = onAuthStateChanged(auth, (u) => setCurrentUser(u));
+    return () => unsub();
+  }, []);
 
   const isActive = (to: string) => (to === "/" ? path === "/" : path.startsWith(to));
 
@@ -39,7 +48,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen md:pl-56">
       <div className="sticky top-0 z-30 flex items-center justify-between border-b border-warning/20 glass border-x-0 border-t-0 px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-warning">
         <span className="truncate">{adminService.mode === "demo" ? <><span className="md:hidden">Demo — not live</span><span className="hidden md:inline">Demo data — not connected to production</span></> : "Live Cloudflare Edge"}</span>
-        <span className="shrink-0 text-muted-foreground md:hidden">MaQi Admin</span>
+        <div className="flex items-center gap-2">
+          {currentUser ? (
+            <div className="flex items-center gap-1.5 text-foreground lowercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="hidden sm:inline font-sans text-[11px] truncate max-w-[140px]">{currentUser.email}</span>
+              <AdminAuthModal currentUser={currentUser} trigger={<button className="underline text-muted-foreground hover:text-foreground text-[10px] uppercase tracking-wider cursor-pointer">Account</button>} />
+            </div>
+          ) : (
+            <AdminAuthModal currentUser={currentUser} trigger={<button className="rounded px-2 py-0.5 bg-primary/20 text-primary hover:bg-primary/30 uppercase text-[10px] font-semibold tracking-wider flex items-center gap-1 cursor-pointer">🔑 ID Login</button>} />
+          )}
+        </div>
       </div>
 
       {/* Desktop / tablet rail */}

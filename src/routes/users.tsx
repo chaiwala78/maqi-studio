@@ -31,6 +31,7 @@ import {
   type RegisteredAppUser,
 } from "@/lib/firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
+import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
 
 export const Route = createFileRoute("/users")({
   head: pageHead("Users & Admins", "Live Firebase Authentication users and authorized MaQi administrators."),
@@ -118,20 +119,26 @@ function UsersAndAdminsPage() {
         eyebrow="Firebase Authentication & Database"
         title="Users & Team"
         action={
-          currentUser ? (
-            <div className="flex items-center gap-2">
-              <span className="hidden text-xs text-muted-foreground sm:inline">
-                {currentUser.email}
-              </span>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1.5">
-                <LogOut className="h-3.5 w-3.5" /> Logout
-              </Button>
-            </div>
-          ) : (
-            <Button size="sm" onClick={handleGoogleLogin} className="gap-1.5">
-              <LogIn className="h-3.5 w-3.5" /> Sign in with Google
-            </Button>
-          )
+          <AdminAuthModal
+            currentUser={currentUser}
+            onSuccess={loadUsers}
+            trigger={
+              currentUser ? (
+                <div className="flex items-center gap-2">
+                  <span className="hidden text-xs text-muted-foreground sm:inline font-mono">
+                    {currentUser.email}
+                  </span>
+                  <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
+                    <LogOut className="h-3 w-3" /> Account
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" className="gap-1.5 h-8 text-xs font-semibold">
+                  <LogIn className="h-3 w-3" /> 🔑 Admin ID Login
+                </Button>
+              )
+            }
+          />
         }
       >
         Monitor registered app users, watch activity stats, and manage authorized administrators.
@@ -140,7 +147,7 @@ function UsersAndAdminsPage() {
       {/* FIREBASE AUTH STATUS BANNER */}
       <section className="glass mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/20 text-primary">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20 text-primary">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
@@ -150,16 +157,22 @@ function UsersAndAdminsPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               {currentUser
-                ? `Active Session: ${currentUser.email} (${currentUser.email === ADMIN_OWNER_EMAIL ? "Owner Admin" : "Authorized User"})`
-                : "Sign in with Google to view real-time Firestore user profiles."}
+                ? `Active Session: ${currentUser.email} (${currentUser.email === ADMIN_OWNER_EMAIL ? "Owner Admin" : "Authorized Admin"})`
+                : "Sign in with your Admin ID & Password to manage users from any phone."}
             </p>
           </div>
         </div>
 
         {!currentUser && (
-          <Button size="sm" variant="secondary" onClick={handleGoogleLogin}>
-            Sign In with Google
-          </Button>
+          <AdminAuthModal
+            currentUser={currentUser}
+            onSuccess={loadUsers}
+            trigger={
+              <Button size="sm" variant="secondary" className="gap-1.5 text-xs font-semibold">
+                <LogIn className="h-3.5 w-3.5" /> Sign In with ID &amp; Password
+              </Button>
+            }
+          />
         )}
       </section>
 

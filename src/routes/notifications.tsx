@@ -37,6 +37,7 @@ import {
   type BroadcastNotification,
 } from "@/lib/firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
+import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
 
 export const Route = createFileRoute("/notifications")({
   head: pageHead("Push Notifications", "Send real-time remote push notifications to MaQi Android app devices."),
@@ -85,7 +86,9 @@ service cloud.firestore {
     function isAdmin() {
       return request.auth != null && (
         request.auth.token.email.lower() == 'jojo219884@gmail.com' ||
-        request.auth.token.email.lower() == 'aabito986f@gmail.com'
+        request.auth.token.email.lower() == 'aabito986f@gmail.com' ||
+        request.auth.token.email.lower() == 'admin@maqi.app' ||
+        request.auth.token.email.matches('.*@maqi[.]app')
       );
     }
 
@@ -133,6 +136,7 @@ function NotificationsPage() {
   const [isSending, setIsSending] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [copiedRules, setCopiedRules] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -201,16 +205,11 @@ function NotificationsPage() {
       return;
     }
 
-    // Auto-prompt Google login if not authenticated
+    // Prompt ID & Password login if not authenticated
     if (!auth.currentUser) {
-      toast.info("Please sign in with your Admin Google Account to broadcast notifications.");
-      try {
-        const u = await loginWithGoogle();
-        setCurrentUser(u);
-      } catch (loginErr: any) {
-        toast.error("Sign in required: " + (loginErr.message || "Please sign in with Google first."));
-        return;
-      }
+      toast.info("Please sign in with your Admin ID & Password first.");
+      setAuthModalOpen(true);
+      return;
     }
 
     if (!window.confirm(`Broadcast push notification to all connected MaQi devices?\n\nTitle: ${title}\nTarget: ${target}`)) {
@@ -280,20 +279,28 @@ function NotificationsPage() {
         title="Push Notification Dispatcher"
         action={
           <div className="flex items-center gap-2">
-            {currentUser ? (
-              <div className="flex items-center gap-2">
-                <span className="hidden text-xs text-muted-foreground sm:inline">
-                  {currentUser.email}
-                </span>
-                <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1.5 h-8 text-xs">
-                  <LogOut className="h-3 w-3" /> Sign Out
-                </Button>
-              </div>
-            ) : (
-              <Button size="sm" onClick={handleGoogleLogin} className="gap-1.5 h-8 text-xs">
-                <LogIn className="h-3 w-3" /> Sign In with Google
-              </Button>
-            )}
+            <AdminAuthModal
+              currentUser={currentUser}
+              open={authModalOpen}
+              onOpenChange={setAuthModalOpen}
+              onSuccess={loadData}
+              trigger={
+                currentUser ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="hidden text-xs text-muted-foreground sm:inline font-mono">
+                      {currentUser.email}
+                    </span>
+                    <Button variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
+                      <LogOut className="h-3 w-3" /> Account
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" className="gap-1.5 h-8 text-xs font-semibold">
+                    <LogIn className="h-3 w-3" /> 🔑 Admin ID Login
+                  </Button>
+                )
+              }
+            />
             <Tag tone="primary">
               <Smartphone className="inline h-3 w-3 mr-1" />
               {activeDeviceCount > 0 ? `${activeDeviceCount} Devices` : "FCM Live"}
