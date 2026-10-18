@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppConfigRouteImport } from './routes/app-config'
 import { Route as BannersRouteImport } from './routes/banners'
 import { Route as CatalogRouteImport } from './routes/catalog'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProvidersRouteImport } from './routes/providers'
 import { Route as SectionsRouteImport } from './routes/sections'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -36,6 +37,11 @@ const BannersRoute = BannersRouteImport.update({
 const CatalogRoute = CatalogRouteImport.update({
   id: '/catalog',
   path: '/catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProvidersRoute = ProvidersRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/app-config': typeof AppConfigRoute
   '/banners': typeof BannersRoute
   '/catalog': typeof CatalogRoute
+  '/notifications': typeof NotificationsRoute
   '/providers': typeof ProvidersRoute
   '/sections': typeof SectionsRoute
   '/settings': typeof SettingsRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/app-config': typeof AppConfigRoute
   '/banners': typeof BannersRoute
   '/catalog': typeof CatalogRoute
+  '/notifications': typeof NotificationsRoute
   '/providers': typeof ProvidersRoute
   '/sections': typeof SectionsRoute
   '/settings': typeof SettingsRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/app-config': typeof AppConfigRoute
   '/banners': typeof BannersRoute
   '/catalog': typeof CatalogRoute
+  '/notifications': typeof NotificationsRoute
   '/providers': typeof ProvidersRoute
   '/sections': typeof SectionsRoute
   '/settings': typeof SettingsRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/app-config'
     | '/banners'
     | '/catalog'
+    | '/notifications'
     | '/providers'
     | '/sections'
     | '/settings'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/app-config'
     | '/banners'
     | '/catalog'
+    | '/notifications'
     | '/providers'
     | '/sections'
     | '/settings'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/app-config'
     | '/banners'
     | '/catalog'
+    | '/notifications'
     | '/providers'
     | '/sections'
     | '/settings'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   AppConfigRoute: typeof AppConfigRoute
   BannersRoute: typeof BannersRoute
   CatalogRoute: typeof CatalogRoute
+  NotificationsRoute: typeof NotificationsRoute
   ProvidersRoute: typeof ProvidersRoute
   SectionsRoute: typeof SectionsRoute
   SettingsRoute: typeof SettingsRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/catalog'
       fullPath: '/catalog'
       preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/providers': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppConfigRoute: AppConfigRoute,
   BannersRoute: BannersRoute,
   CatalogRoute: CatalogRoute,
+  NotificationsRoute: NotificationsRoute,
   ProvidersRoute: ProvidersRoute,
   SectionsRoute: SectionsRoute,
   SettingsRoute: SettingsRoute,

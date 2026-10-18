@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, SlidersHorizontal,
+  BarChart3, GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, SlidersHorizontal, Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -13,11 +13,13 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/", label: "Overview", icon: LayoutGrid },
+  { to: "/notifications", label: "Push Alerts", icon: Bell },
+  { to: "/app-config", label: "App Config", icon: SlidersHorizontal },
   { to: "/sections", label: "Sections", icon: LayoutList },
   { to: "/banners", label: "Banners", icon: GalleryHorizontal },
   { to: "/providers", label: "Providers", icon: Radio },
-  { to: "/app-config", label: "App Config", icon: SlidersHorizontal },
-  { to: "/users", label: "Admins", icon: Users },
+  { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/users", label: "Users & Team", icon: Users },
   { to: "/settings", label: "Settings & Log", icon: Settings },
 ] as const;
 

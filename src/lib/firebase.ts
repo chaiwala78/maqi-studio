@@ -14,8 +14,11 @@ import {
   doc,
   getDoc,
   setDoc,
+  addDoc,
   query,
   limit,
+  orderBy,
+  deleteDoc,
 } from "firebase/firestore";
 import { getDatabase, ref, get, set as rtdbSet } from "firebase/database";
 import type { RemoteConfig } from "@/services/remote-config";
@@ -181,4 +184,92 @@ export async function loadLiveRemoteConfig(): Promise<Partial<RemoteConfig> | nu
   } catch (_) {}
 
   return null;
+}
+
+export interface BroadcastNotification {
+  id?: string;
+  title: string;
+  body: string;
+  imageUrl?: string;
+  type?: "anime" | "movie" | "tv" | "update" | "announcement" | "general";
+  animeId?: string;
+  url?: string;
+  route?: string;
+  target?: "all" | "topic_all_users" | "topic_releases" | "topic_announcements";
+  timestamp: number;
+  sentBy?: string;
+}
+
+/**
+ * Sends a real-time broadcast notification across all connected MaQi mobile apps.
+ * Writes to Firestore broadcast_notifications which triggers instant delivery on devices.
+ */
+export async function sendBroadcastNotification(
+  notif: Omit<BroadcastNotification, "timestamp">
+): Promise<string> {
+  const user = auth.currentUser;
+  const colRef = collection(db, "broadcast_notifications");
+  const docData: any = {
+    title: notif.title,
+    body: notif.body,
+    imageUrl: notif.imageUrl || "",
+    type: notif.type || "general",
+    target: notif.target || "all",
+    timestamp: Date.now(),
+    sentBy: user?.email || "admin@maqi.app",
+  };
+  if (notif.animeId) {
+    docData.animeId = notif.animeId;
+    docData.id = notif.animeId;
+  }
+  if (notif.route) docData.route = notif.route;
+  if (notif.url) docData.url = notif.url;
+
+  const docRef = await addDoc(colRef, docData);
+  return docRef.id;
+}
+
+/**
+ * Fetches the recent history of broadcast push notifications.
+ */
+export async function fetchNotificationHistory(): Promise<BroadcastNotification[]> {
+  try {
+    const colRef = collection(db, "broadcast_notifications");
+    const q = query(colRef, orderBy("timestamp", "desc"), limit(25));
+    const snapshot = await getDocs(q);
+    const list: BroadcastNotification[] = [];
+    snapshot.forEach((d) => {
+      const data = d.data();
+      list.push({
+        id: d.id,
+        title: data.title || "",
+        body: data.body || "",
+        imageUrl: data.imageUrl || "",
+        type: data.type || "general",
+        animeId: data.animeId || data.id || "",
+        route: data.route || "",
+        url: data.url || "",
+        target: data.target || "all",
+        timestamp: data.timestamp || 0,
+        sentBy: data.sentBy || "",
+      });
+    });
+    return list;
+  } catch (err) {
+    console.warn("Failed to fetch broadcast history:", err);
+    return [];
+  }
+}
+
+/**
+ * Fetches count of active FCM registered devices.
+ */
+export async function fetchFcmTokensCount(): Promise<number> {
+  try {
+    const tokensCol = collection(db, "fcm_tokens");
+    const snapshot = await getDocs(query(tokensCol, limit(500)));
+    return snapshot.size;
+  } catch (err) {
+    return 0;
+  }
 }

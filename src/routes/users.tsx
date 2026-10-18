@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
+  Bell,
   CheckCircle2,
   Clock,
   Film,
@@ -250,6 +251,14 @@ function UsersAndAdminsPage() {
                           </span>
                         </div>
                       </div>
+
+                      {/* Send Push Action */}
+                      <Link to="/notifications" className="shrink-0 self-center">
+                        <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs hover:text-primary">
+                          <Bell className="h-3.5 w-3.5 text-primary" />
+                          <span className="hidden sm:inline">Push Alert</span>
+                        </Button>
+                      </Link>
                     </li>
                   );
                 })}
