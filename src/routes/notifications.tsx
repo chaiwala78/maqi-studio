@@ -14,6 +14,11 @@ import {
   Info,
   Clock,
   Trash2,
+  LogIn,
+  LogOut,
+  ShieldAlert,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader, Tag, Field } from "@/components/admin/kit";
@@ -24,11 +29,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { pageHead } from "@/lib/head";
 import {
   auth,
+  loginWithGoogle,
+  logoutUser,
   sendBroadcastNotification,
   fetchNotificationHistory,
   fetchFcmTokensCount,
   type BroadcastNotification,
 } from "@/lib/firebase";
+import { onAuthStateChanged, type User } from "firebase/auth";
 
 export const Route = createFileRoute("/notifications")({
   head: pageHead("Push Notifications", "Send real-time remote push notifications to MaQi Android app devices."),
@@ -70,7 +78,17 @@ const TEMPLATES = [
   },
 ];
 
+const FIRESTORE_RULES_SNIPPET = `rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}`;
+
 function NotificationsPage() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -83,9 +101,15 @@ function NotificationsPage() {
   const [history, setHistory] = useState<BroadcastNotification[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [copiedRules, setCopiedRules] = useState(false);
 
   useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setCurrentUser(u);
+      void loadData();
+    });
     void loadData();
+    return () => unsub();
   }, []);
 
   async function loadData() {
@@ -102,6 +126,28 @@ function NotificationsPage() {
     } finally {
       setLoadingHistory(false);
     }
+  }
+
+  async function handleGoogleLogin() {
+    try {
+      const u = await loginWithGoogle();
+      toast.success(`Signed in as ${u.displayName || u.email}!`);
+      void loadData();
+    } catch (err: any) {
+      toast.error("Google login failed: " + (err.message || "Unknown error"));
+    }
+  }
+
+  async function handleLogout() {
+    await logoutUser();
+    toast("Signed out successfully");
+  }
+
+  function copyRules() {
+    navigator.clipboard.writeText(FIRESTORE_RULES_SNIPPET);
+    setCopiedRules(true);
+    toast.success("Firestore Rules copied to clipboard! Paste them in Firebase Console -> Firestore -> Rules.");
+    setTimeout(() => setCopiedRules(false), 3000);
   }
 
   function applyTemplate(tpl: typeof TEMPLATES[0]) {
@@ -140,6 +186,26 @@ function NotificationsPage() {
         target,
       });
 
+      // Also mirror to Cloudflare Worker notice so users get in-app announcement
+      try {
+        await fetch("https://modi.aabito986f.workers.dev/api/admin/config", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Maqi-App-Token": "maqi_sec_786_auth_gate_v1",
+          },
+          body: JSON.stringify({
+            app_notice: {
+              enabled: true,
+              id: `notif_${Date.now()}`,
+              title: title.trim(),
+              message: body.trim(),
+              is_cancellable: true,
+            },
+          }),
+        });
+      } catch (_) {}
+
       toast.success("Push notification dispatched to all MaQi devices! 🚀");
       // Reset form
       setTitle("");
@@ -150,7 +216,15 @@ function NotificationsPage() {
       // Refresh history
       void loadData();
     } catch (err: any) {
-      toast.error("Failed to send notification: " + (err.message || "Unknown error"));
+      const msg = err.message || "Unknown error";
+      if (msg.toLowerCase().includes("permission")) {
+        toast.error("Permission Denied: Please update Firestore Rules in Firebase Console or Sign In with Google.", {
+          duration: 9000,
+          description: "See the 'Firebase Setup & Rules' guide below on this page.",
+        });
+      } else {
+        toast.error("Failed to send notification: " + msg);
+      }
     } finally {
       setIsSending(false);
     }
@@ -163,15 +237,62 @@ function NotificationsPage() {
         title="Push Notification Dispatcher"
         action={
           <div className="flex items-center gap-2">
+            {currentUser ? (
+              <div className="flex items-center gap-2">
+                <span className="hidden text-xs text-muted-foreground sm:inline">
+                  {currentUser.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1.5 h-8 text-xs">
+                  <LogOut className="h-3 w-3" /> Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" onClick={handleGoogleLogin} className="gap-1.5 h-8 text-xs">
+                <LogIn className="h-3 w-3" /> Sign In with Google
+              </Button>
+            )}
             <Tag tone="primary">
               <Smartphone className="inline h-3 w-3 mr-1" />
-              {activeDeviceCount > 0 ? `${activeDeviceCount} Devices Registered` : "FCM Connected"}
+              {activeDeviceCount > 0 ? `${activeDeviceCount} Devices` : "FCM Live"}
             </Tag>
           </div>
         }
       >
         Broadcast push notifications with rich images and deep links directly to all MaQi Android users in real-time.
       </PageHeader>
+
+      {/* PERMISSION / RULES ALERT BANNER */}
+      <section className="glass mb-5 rounded-2xl border border-warning/30 bg-warning/5 p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/20 text-warning">
+              <ShieldAlert className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-foreground">
+                Firebase Firestore Security Rules Deployment Required
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                If you see &ldquo;Missing or insufficient permissions&rdquo;, your Firebase project rules block writes. You must publish rules in Firebase Console.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" variant="outline" onClick={copyRules} className="h-7 text-xs gap-1">
+              {copiedRules ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+              {copiedRules ? "Copied!" : "Copy Firestore Rules"}
+            </Button>
+            <a
+              href="https://console.firebase.google.com/project/maqi-f2c36/firestore/rules"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary underline"
+            >
+              Open Console <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
+      </section>
 
       {/* QUICK TEMPLATES */}
       <section className="mb-6">
