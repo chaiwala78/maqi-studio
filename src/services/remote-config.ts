@@ -16,14 +16,17 @@ export interface RemoteConfig {
 
 export const REMOTE_CONFIG_DEFAULTS: RemoteConfig = {
   maintenance_mode: false,
-  maintenance_message: "why you are gay?🥀😹",
+  maintenance_message:
+    "FATAL ERROR 403: AndroidRuntime: FATAL EXCEPTION: java.lang.IllegalStateException: Application state validation failed  at android.app.ActivityThread.performLaunchActivity(ActivityThread.java) at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java)  Caused by: java.lang.SecurityException: Application integrity verification failed.  E/AndroidRuntime: FATAL EXCEPTION E/PackageManager: Package validation failed E/System: Unauthorized Modification Detected. App integrity verification failed. Access restricted due to a security policy violation.",
   force_update: false,
   minimum_app_version: "1.0",
-  update_url: "https://github.com/mramir21988-blip/Loda-lehsun-/releases/download/Loda/app-debug.-.2026-08-29T0216",
+  update_url:
+    "https://github.com/mramir21988-blip/Loda-lehsun-/releases/download/Loda/app-debug.-.2026-08-29T021633.668.apk",
   announcement_enabled: false,
   announcement_id: "v1_welcome",
   announcement_title: "Welcome to MaQi!",
-  announcement_message: "Enjoy high-speed anime and movie streaming with updated features.",
+  announcement_message:
+    "Enjoy high-speed anime and movie streaming with updated features.",
 };
 
 export function validateRemoteConfig(c: RemoteConfig): Partial<Record<keyof RemoteConfig, string>> {
