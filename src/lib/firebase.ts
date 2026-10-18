@@ -38,7 +38,17 @@ export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export const ADMIN_OWNER_EMAIL = "aabito986f@gmail.com";
+export const ADMIN_EMAILS = [
+  "jojo219884@gmail.com",
+  "aabito986f@gmail.com",
+];
+
+export const ADMIN_OWNER_EMAIL = "jojo219884@gmail.com";
+
+export function isUserAdmin(email?: string | null): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.some((e) => e.toLowerCase() === email.toLowerCase());
+}
 
 export interface RegisteredAppUser {
   uid: string;

@@ -81,8 +81,39 @@ const TEMPLATES = [
 const FIRESTORE_RULES_SNIPPET = `rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email.lower() == 'jojo219884@gmail.com' ||
+        request.auth.token.email.lower() == 'aabito986f@gmail.com'
+      );
+    }
+
+    match /broadcast_notifications/{notificationId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /app_config/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /fcm_tokens/{token} {
+      allow create, update: if true;
+      allow read, delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      allow write: if request.auth != null && request.auth.uid == userId;
+      match /{subcollection=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }`;
@@ -146,7 +177,7 @@ function NotificationsPage() {
   function copyRules() {
     navigator.clipboard.writeText(FIRESTORE_RULES_SNIPPET);
     setCopiedRules(true);
-    toast.success("Firestore Rules copied to clipboard! Paste them in Firebase Console -> Firestore -> Rules.");
+    toast.success("Secure Admin Rules copied! Paste them in Firebase Console -> Firestore -> Rules.");
     setTimeout(() => setCopiedRules(false), 3000);
   }
 
@@ -168,6 +199,18 @@ function NotificationsPage() {
     if (!body.trim()) {
       toast.error("Please enter a notification message");
       return;
+    }
+
+    // Auto-prompt Google login if not authenticated
+    if (!auth.currentUser) {
+      toast.info("Please sign in with your Admin Google Account to broadcast notifications.");
+      try {
+        const u = await loginWithGoogle();
+        setCurrentUser(u);
+      } catch (loginErr: any) {
+        toast.error("Sign in required: " + (loginErr.message || "Please sign in with Google first."));
+        return;
+      }
     }
 
     if (!window.confirm(`Broadcast push notification to all connected MaQi devices?\n\nTitle: ${title}\nTarget: ${target}`)) {
