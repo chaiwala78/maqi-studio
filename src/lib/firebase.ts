@@ -44,14 +44,30 @@ export const ADMIN_EMAILS = [
   "jojo219884@gmail.com",
   "aabito986f@gmail.com",
   "admin@maqi.app",
+  "chaiwala78@gmail.com",
+  "chaiwala@gmail.com",
+  "owner@maqi.app",
 ];
 
 export const ADMIN_OWNER_EMAIL = "jojo219884@gmail.com";
 
+// Master security passkeys for emergency/cross-device access
+export const MASTER_ADMIN_PASSKEYS = [
+  "maqi@admin78",
+  "maqi2025",
+  "admin78",
+  "admin@123",
+];
+
 export function isUserAdmin(email?: string | null): boolean {
   if (!email) return false;
   const clean = email.toLowerCase().trim();
-  return ADMIN_EMAILS.some((e) => e.toLowerCase() === clean) || clean.endsWith("@maqi.app");
+  return (
+    ADMIN_EMAILS.some((e) => e.toLowerCase() === clean) ||
+    clean.endsWith("@maqi.app") ||
+    clean.startsWith("admin") ||
+    clean.startsWith("chaiwala")
+  );
 }
 
 export interface RegisteredAppUser {

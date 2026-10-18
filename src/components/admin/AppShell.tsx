@@ -1,7 +1,18 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  BarChart3, GalleryHorizontal, LayoutGrid, LayoutList, MoreHorizontal, Radio, Settings, Users, SlidersHorizontal, Bell,
+  BarChart3,
+  GalleryHorizontal,
+  LayoutGrid,
+  LayoutList,
+  MoreHorizontal,
+  Radio,
+  Settings,
+  Users,
+  SlidersHorizontal,
+  Bell,
+  LogOut,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -10,9 +21,9 @@ import { changedKeys, discardDraft, loadAdmin, publishDraft, useAdmin } from "@/
 import { adminService } from "@/services/admin-service";
 import type { DataKey } from "@/services/types";
 import { cn } from "@/lib/utils";
-import { auth } from "@/lib/firebase";
+import { auth, logoutUser, isUserAdmin } from "@/lib/firebase";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { AdminAuthModal } from "./AdminAuthModal";
+import { AdminGatekeeper } from "./AdminGatekeeper";
 
 const NAV = [
   { to: "/", label: "Overview", icon: LayoutGrid },
@@ -27,53 +38,160 @@ const NAV = [
 ] as const;
 
 const KEY_LABEL: Record<DataKey, string> = {
-  catalog: "Catalog", curated: "Curated collections", banners: "Hero banners",
-  sections: "Home sections", providers: "Streaming providers", admins: "Admins",
+  catalog: "Catalog",
+  curated: "Curated collections",
+  banners: "Hero banners",
+  sections: "Home sections",
+  providers: "Streaming providers",
+  admins: "Admins",
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [more, setMore] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(auth.currentUser);
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
 
   useEffect(() => {
+    // 1. Verify persisted active admin session
+    let sessionValid = false;
+    try {
+      const savedSession = sessionStorage.getItem("maqi_admin_session") || localStorage.getItem("maqi_admin_session");
+      if (savedSession) {
+        const parsed = JSON.parse(savedSession);
+        if (parsed.authenticated) {
+          setIsUnlocked(true);
+          sessionValid = true;
+        }
+      }
+    } catch {}
+
+    // 2. Load admin and listen for Firebase auth
     void loadAdmin();
-    const unsub = onAuthStateChanged(auth, (u) => setCurrentUser(u));
-    return () => unsub();
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setCurrentUser(u);
+      if (u && isUserAdmin(u.email)) {
+        setIsUnlocked(true);
+      }
+      setAuthChecking(false);
+    });
+
+    // Fallback timer: stop checking after 300ms if already determined
+    const timer = setTimeout(() => {
+      setAuthChecking(false);
+    }, 300);
+
+    return () => {
+      unsub();
+      clearTimeout(timer);
+    };
   }, []);
+
+  async function handleLogout() {
+    try {
+      sessionStorage.removeItem("maqi_admin_session");
+      sessionStorage.removeItem("maqi_admin_verified");
+      localStorage.removeItem("maqi_admin_session");
+      await logoutUser();
+    } catch {}
+    setIsUnlocked(false);
+    setCurrentUser(null);
+    toast.success("Logged out successfully. Security gate locked.");
+  }
+
+  // COMPULSORY LOGIN SHIELD: If not unlocked, render ONLY AdminGatekeeper
+  if (authChecking) {
+    return (
+      <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center text-white select-none">
+        <div className="relative flex items-center justify-center">
+          <div className="h-16 w-16 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" />
+          <ShieldCheck className="h-7 w-7 text-red-500 absolute" />
+        </div>
+        <p className="mt-4 font-mono text-xs tracking-widest uppercase text-neutral-400 animate-pulse">
+          Verifying Security Clearance...
+        </p>
+      </div>
+    );
+  }
+
+  if (!isUnlocked) {
+    return (
+      <AdminGatekeeper
+        onAuthenticated={() => {
+          setIsUnlocked(true);
+        }}
+      />
+    );
+  }
 
   const isActive = (to: string) => (to === "/" ? path === "/" : path.startsWith(to));
 
   return (
-    <div className="min-h-screen md:pl-56">
+    <div className="min-h-screen md:pl-56 bg-background">
+      {/* Top Admin Security Status Bar */}
       <div className="sticky top-0 z-30 flex items-center justify-between border-b border-warning/20 glass border-x-0 border-t-0 px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-warning">
-        <span className="truncate">{adminService.mode === "demo" ? <><span className="md:hidden">Demo — not live</span><span className="hidden md:inline">Demo data — not connected to production</span></> : "Live Cloudflare Edge"}</span>
-        <div className="flex items-center gap-2">
-          {currentUser ? (
-            <div className="flex items-center gap-1.5 text-foreground lowercase">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span className="hidden sm:inline font-sans text-[11px] truncate max-w-[140px]">{currentUser.email}</span>
-              <AdminAuthModal currentUser={currentUser} trigger={<button className="underline text-muted-foreground hover:text-foreground text-[10px] uppercase tracking-wider cursor-pointer">Account</button>} />
-            </div>
+        <span className="truncate">
+          {adminService.mode === "demo" ? (
+            <>
+              <span className="md:hidden">Demo — not live</span>
+              <span className="hidden md:inline">Demo data — not connected to production</span>
+            </>
           ) : (
-            <AdminAuthModal currentUser={currentUser} trigger={<button className="rounded px-2 py-0.5 bg-primary/20 text-primary hover:bg-primary/30 uppercase text-[10px] font-semibold tracking-wider flex items-center gap-1 cursor-pointer">🔑 ID Login</button>} />
+            "Live Cloudflare Edge"
           )}
+        </span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-foreground lowercase">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="hidden sm:inline font-sans text-[11px] truncate max-w-[140px]">
+              {currentUser?.email || "admin@maqi.app"}
+            </span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="rounded px-2.5 py-0.5 bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-500/30 uppercase text-[10px] font-semibold tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
+          >
+            <LogOut className="h-3 w-3" /> Log Out
+          </button>
         </div>
       </div>
 
       {/* Desktop / tablet rail */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col border-r border-border bg-sidebar md:flex">
-        <div className="px-5 py-6">
-          <span className="font-display text-xl font-semibold">MaQi</span>
-          <span className="eyebrow ml-2">Admin</span>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col justify-between border-r border-border bg-sidebar md:flex">
+        <div>
+          <div className="px-5 py-6">
+            <span className="font-display text-xl font-semibold">MaQi</span>
+            <span className="eyebrow ml-2">Admin</span>
+          </div>
+          <nav className="flex flex-col gap-0.5 px-3">
+            {NAV.map((n) => (
+              <Link
+                key={n.to}
+                to={n.to}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground",
+                  isActive(n.to) && "bg-sidebar-accent text-foreground"
+                )}
+              >
+                <n.icon className={cn("h-4 w-4", isActive(n.to) && "text-primary")} /> {n.label}
+              </Link>
+            ))}
+          </nav>
         </div>
-        <nav className="flex flex-col gap-0.5 px-3">
-          {NAV.map((n) => (
-            <Link key={n.to} to={n.to} className={cn("flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground", isActive(n.to) && "bg-sidebar-accent text-foreground")}>
-              <n.icon className={cn("h-4 w-4", isActive(n.to) && "text-primary")} /> {n.label}
-            </Link>
-          ))}
-        </nav>
+
+        {/* Sidebar Footer Logout */}
+        <div className="p-3 border-t border-border/40">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+          >
+            <span className="flex items-center gap-2">
+              <LogOut className="h-4 w-4" /> Sign Out
+            </span>
+            <span className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">Lock</span>
+          </button>
+        </div>
       </aside>
 
       <main className="mx-auto max-w-5xl px-4 pb-44 pt-5 md:px-8 md:pb-24 md:pt-8">{children}</main>
@@ -83,24 +201,62 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Mobile bottom nav - Exactly 5 items: Overview, Sections, Banners, Providers, More */}
       <nav className="glass fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-5 rounded-2xl shadow-lg md:hidden">
         {NAV.slice(0, 4).map((n) => (
-          <Link key={n.to} to={n.to} className={cn("relative flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground", isActive(n.to) && "text-foreground")}>
+          <Link
+            key={n.to}
+            to={n.to}
+            className={cn(
+              "relative flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground",
+              isActive(n.to) && "text-foreground"
+            )}
+          >
             {isActive(n.to) && <span className="absolute top-1 h-8 w-12 rounded-xl bg-primary/15" />}
-            <n.icon className={cn("relative h-5 w-5", isActive(n.to) && "text-primary")} /> <span className="relative">{n.label}</span>
+            <n.icon className={cn("relative h-5 w-5", isActive(n.to) && "text-primary")} />{" "}
+            <span className="relative">{n.label}</span>
           </Link>
         ))}
-        <button onClick={() => setMore(true)} className={cn("flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground", NAV.slice(4).some((n) => isActive(n.to)) && "text-foreground")}>
+        <button
+          onClick={() => setMore(true)}
+          className={cn(
+            "flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground",
+            NAV.slice(4).some((n) => isActive(n.to)) && "text-foreground"
+          )}
+        >
           <MoreHorizontal className="h-5 w-5" /> More
         </button>
       </nav>
+
+      {/* Mobile More Sheet */}
       <Sheet open={more} onOpenChange={setMore}>
         <SheetContent side="bottom" className="glass rounded-t-2xl">
-          <SheetHeader><SheetTitle>More</SheetTitle><SheetDescription className="sr-only">Other sections</SheetDescription></SheetHeader>
-          <div className="flex flex-col gap-1 px-4 pb-6">
+          <SheetHeader>
+            <SheetTitle>Admin Navigation</SheetTitle>
+            <SheetDescription className="sr-only">Other admin sections</SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-1 px-4 pb-6 pt-2">
             {NAV.slice(4).map((n) => (
-              <Link key={n.to} to={n.to} onClick={() => setMore(false)} className={cn("flex items-center gap-3 rounded-md px-3 py-3 text-sm", isActive(n.to) ? "bg-secondary" : "text-muted-foreground")}>
+              <Link
+                key={n.to}
+                to={n.to}
+                onClick={() => setMore(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-3 text-sm",
+                  isActive(n.to) ? "bg-secondary" : "text-muted-foreground"
+                )}
+              >
                 <n.icon className="h-4 w-4" /> {n.label}
               </Link>
             ))}
+            <div className="pt-2 mt-2 border-t border-border/40">
+              <button
+                onClick={() => {
+                  setMore(false);
+                  handleLogout();
+                }}
+                className="w-full flex items-center gap-3 rounded-md px-3 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors font-medium cursor-pointer"
+              >
+                <LogOut className="h-4 w-4" /> Sign Out &amp; Lock Studio
+              </button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
@@ -120,28 +276,51 @@ function PublishBar() {
     try {
       const res = await publishDraft();
       if (res.status === "confirmed") toast.success("Published — confirmed by backend");
-      else if (res.status === "demo") toast.warning("Demo — nothing was sent to production", { description: "Draft saved locally as the new demo baseline." });
+      else if (res.status === "demo")
+        toast.warning("Demo — nothing was sent to production", {
+          description: "Draft saved locally as the new demo baseline.",
+        });
       else toast.error("Publish failed", { description: res.message });
       if (res.status !== "error") setOpen(false);
     } catch {
       toast.error("Publish failed", { description: "No response from backend. Nothing was changed." });
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
     <>
       <div className="glass fixed inset-x-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 rounded-full border-primary/30 py-1.5 pl-4 pr-1.5 shadow-lg md:inset-x-auto md:bottom-4 md:left-[calc(14rem+1rem)] md:right-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-          <p className="min-w-0 truncate text-xs text-muted-foreground"><span className="text-foreground">{keys.length}</span> unpublished<span className="hidden sm:inline"> area{keys.length > 1 ? "s" : ""}</span></p>
+          <p className="min-w-0 truncate text-xs text-muted-foreground">
+            <span className="text-foreground">{keys.length}</span> unpublished
+            <span className="hidden sm:inline"> area{keys.length > 1 ? "s" : ""}</span>
+          </p>
           <div className="flex shrink-0 gap-1">
-            <Button size="sm" variant="ghost" className="rounded-full" onClick={() => { discardDraft(); toast("Draft discarded"); }}>Discard</Button>
-            <Button size="sm" className="rounded-full" onClick={() => setOpen(true)}>Review & Publish</Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="rounded-full"
+              onClick={() => {
+                discardDraft();
+                toast("Draft discarded");
+              }}
+            >
+              Discard
+            </Button>
+            <Button size="sm" className="rounded-full" onClick={() => setOpen(true)}>
+              Review & Publish
+            </Button>
           </div>
         </div>
       </div>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="glass mx-auto max-w-lg rounded-t-2xl">
-          <SheetHeader><SheetTitle>Review Changes</SheetTitle><SheetDescription>The following areas have unsaved draft modifications:</SheetDescription></SheetHeader>
+          <SheetHeader>
+            <SheetTitle>Review Changes</SheetTitle>
+            <SheetDescription>The following areas have unsaved draft modifications:</SheetDescription>
+          </SheetHeader>
           <div className="space-y-4 px-4 pb-6 pt-3">
             <ul className="divide-y divide-border rounded-xl border border-border">
               {keys.map((k) => (
@@ -152,8 +331,12 @@ function PublishBar() {
               ))}
             </ul>
             <div className="flex gap-2">
-              <Button variant="secondary" className="flex-1" onClick={() => setOpen(false)}>Continue Editing</Button>
-              <Button className="flex-1" disabled={busy} onClick={confirm}>{busy ? "Publishing..." : "Confirm & Publish"}</Button>
+              <Button variant="secondary" className="flex-1" onClick={() => setOpen(false)}>
+                Continue Editing
+              </Button>
+              <Button className="flex-1" disabled={busy} onClick={confirm}>
+                {busy ? "Publishing..." : "Confirm & Publish"}
+              </Button>
             </div>
           </div>
         </SheetContent>
