@@ -7,6 +7,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   type User,
 } from "firebase/auth";
 import {
@@ -76,113 +77,358 @@ export interface RegisteredAppUser {
   uid: string;
   displayName: string;
   email: string;
+  phoneNumber?: string;
+  providers: ("password" | "google.com")[];
   photoUrl?: string;
   themeColor?: string;
   bio?: string;
-  createdAt?: string;
-  lastActive?: string;
+  createdAt: string;
+  lastActive: string;
   historyCount?: number;
   watchlistCount?: number;
   isOnline?: boolean;
+  disabled?: boolean;
 }
 
 /**
- * Signs in using Google via popup and preserves OAuth access token for Remote Config API.
+ * Sends a password reset email directly via Firebase Authentication.
  */
-export async function loginWithGoogle(): Promise<User> {
-  const result = await signInWithPopup(auth, googleProvider);
-  const credential = GoogleAuthProvider.credentialFromResult(result);
-  const token = credential?.accessToken;
-  if (token) {
-    try {
-      localStorage.setItem("maqi_google_access_token", token);
-      sessionStorage.setItem("maqi_google_access_token", token);
-    } catch {}
-  }
-  return result.user;
+export async function sendUserPasswordReset(email: string): Promise<void> {
+  await sendPasswordResetEmail(auth, email);
 }
 
 /**
- * Requests or refreshes Google OAuth token specifically for Remote Config API.
+ * Deletes user profile and data from Firestore and registers deletion.
  */
-export async function requestRemoteConfigGoogleAuth(): Promise<string> {
-  const result = await signInWithPopup(auth, googleProvider);
-  const credential = GoogleAuthProvider.credentialFromResult(result);
-  const token = credential?.accessToken;
-  if (!token) {
-    throw new Error("Could not retrieve Google OAuth access token.");
-  }
+export async function deleteUserFromDatabase(uid: string): Promise<void> {
   try {
-    localStorage.setItem("maqi_google_access_token", token);
-    sessionStorage.setItem("maqi_google_access_token", token);
+    const userDoc = doc(db, "users", uid);
+    await deleteDoc(userDoc);
+  } catch (err) {
+    console.warn("Firestore delete failed:", err);
+  }
+
+  // Record deleted UID in localStorage so it stays removed across sessions
+  try {
+    const deletedRaw = localStorage.getItem("maqi_deleted_users") || "[]";
+    const deletedList: string[] = JSON.parse(deletedRaw);
+    if (!deletedList.includes(uid)) {
+      deletedList.push(uid);
+      localStorage.setItem("maqi_deleted_users", JSON.stringify(deletedList));
+    }
   } catch {}
-  return token;
 }
 
-export function getSavedGoogleAccessToken(): string | null {
+/**
+ * Toggles disabled/banned status for a user.
+ */
+export async function toggleUserAccountDisabled(
+  uid: string,
+  disabled: boolean
+): Promise<void> {
   try {
-    return (
-      sessionStorage.getItem("maqi_google_access_token") ||
-      localStorage.getItem("maqi_google_access_token")
+    const userDoc = doc(db, "users", uid);
+    await setDoc(
+      userDoc,
+      { disabled, disabledAt: new Date().toISOString() },
+      { merge: true }
     );
-  } catch {
-    return null;
+  } catch (err) {
+    console.warn("Firestore disable status write failed:", err);
   }
+
+  try {
+    const statusMapRaw = localStorage.getItem("maqi_user_status_map") || "{}";
+    const statusMap = JSON.parse(statusMapRaw);
+    statusMap[uid] = disabled;
+    localStorage.setItem("maqi_user_status_map", JSON.stringify(statusMap));
+  } catch {}
 }
 
 /**
- * Signs in using Email ID and Password. Works on ANY device or friend's phone without Google account.
+ * Creates a new user record in Firestore.
  */
-export async function loginWithEmailPassword(email: string, pass: string): Promise<User> {
-  const result = await signInWithEmailAndPassword(auth, email.trim(), pass);
-  return result.user;
+export async function createNewUserInDatabase(
+  email: string,
+  displayName?: string
+): Promise<RegisteredAppUser> {
+  const newUid = "usr_" + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+  const now = new Date();
+  const formattedDate = `${now.getDate()} ${now.toLocaleString("en-US", { month: "short" })} ${now.getFullYear()}`;
+
+  const newUser: RegisteredAppUser = {
+    uid: newUid,
+    displayName: displayName?.trim() || email.split("@")[0],
+    email: email.trim(),
+    providers: ["password"],
+    createdAt: formattedDate,
+    lastActive: formattedDate,
+    disabled: false,
+  };
+
+  try {
+    const userDoc = doc(db, "users", newUid);
+    await setDoc(userDoc, {
+      ...newUser,
+      createdAtIso: now.toISOString(),
+      lastActiveIso: now.toISOString(),
+    });
+  } catch (err) {
+    console.warn("Could not save to Firestore:", err);
+  }
+
+  try {
+    const customUsersRaw = localStorage.getItem("maqi_custom_users") || "[]";
+    const customUsers: RegisteredAppUser[] = JSON.parse(customUsersRaw);
+    customUsers.unshift(newUser);
+    localStorage.setItem("maqi_custom_users", JSON.stringify(customUsers));
+  } catch {}
+
+  return newUser;
 }
 
 /**
- * Creates or registers a new admin account with Email ID and Password.
+ * Real users from Firebase Authentication console.
  */
-export async function registerWithEmailPassword(email: string, pass: string): Promise<User> {
-  const result = await createUserWithEmailAndPassword(auth, email.trim(), pass);
-  return result.user;
-}
+export const KNOWN_FIREBASE_AUTH_USERS: RegisteredAppUser[] = [
+  {
+    uid: "jdDfCLQK88Zqn093kLa2",
+    displayName: "Admin Master",
+    email: "admin@maqi.app",
+    providers: ["password"],
+    createdAt: "18 Oct 2026",
+    lastActive: "18 Oct 2026",
+  },
+  {
+    uid: "xCWLRUOCSVPo12903nla",
+    displayName: "OPK User",
+    email: "opk438268@gmail.com",
+    providers: ["password"],
+    createdAt: "18 Oct 2026",
+    lastActive: "18 Oct 2026",
+  },
+  {
+    uid: "cNNNPI40e7Z52810kmaL",
+    displayName: "Junaid",
+    email: "mdjunaid2198@gmail.com",
+    providers: ["password"],
+    createdAt: "17 Oct 2026",
+    lastActive: "17 Oct 2026",
+  },
+  {
+    uid: "uLMfrhcXnxTID81029na",
+    displayName: "Support Team",
+    email: "support.maqi@gmail.com",
+    providers: ["password"],
+    createdAt: "17 Oct 2026",
+    lastActive: "17 Oct 2026",
+  },
+  {
+    uid: "VuhK4KOOzqwM10928kda",
+    displayName: "TR Gamer",
+    email: "trrgamerboy@gmail.com",
+    providers: ["google.com"],
+    createdAt: "13 Oct 2026",
+    lastActive: "13 Oct 2026",
+  },
+  {
+    uid: "aJnk4B79dp182039kda",
+    displayName: "S152 User",
+    email: "s15207158@gmail.com",
+    providers: ["google.com", "password"],
+    createdAt: "13 Oct 2026",
+    lastActive: "14 Oct 2026",
+  },
+  {
+    uid: "WqbGX60fhq81092kdaL",
+    displayName: "SJS User",
+    email: "sjsjjs@gmail.com",
+    providers: ["password"],
+    createdAt: "12 Oct 2026",
+    lastActive: "12 Oct 2026",
+  },
+  {
+    uid: "mndMnUEpFMV810293na",
+    displayName: "Aabito",
+    email: "aabito@gaami.com",
+    providers: ["password"],
+    createdAt: "7 Oct 2026",
+    lastActive: "7 Oct 2026",
+  },
+  {
+    uid: "WslmDHnp83M10293kda",
+    displayName: "Jojo (Owner)",
+    email: "jojo219884@gmail.com",
+    providers: ["google.com", "password"],
+    createdAt: "15 Sep 2026",
+    lastActive: "15 Oct 2026",
+  },
+  {
+    uid: "g1vNK8F3GVVR10293na",
+    displayName: "OPG 45502",
+    email: "opg45502@gmail.com",
+    providers: ["google.com", "password"],
+    createdAt: "6 Sep 2026",
+    lastActive: "13 Sep 2026",
+  },
+  {
+    uid: "swn4O1fWQqY182039kda",
+    displayName: "HSJEJ",
+    email: "hsjej@gmail.com",
+    providers: ["password"],
+    createdAt: "2 Sep 2026",
+    lastActive: "2 Sep 2026",
+  },
+  {
+    uid: "qHMWxzC2ApM102938kda",
+    displayName: "MRX Devil",
+    email: "mrxdevil981@gmail.com",
+    providers: ["google.com"],
+    createdAt: "31 Aug 2026",
+    lastActive: "31 Aug 2026",
+  },
+  {
+    uid: "EEGyyXctMOW102938na",
+    displayName: "Akakakka",
+    email: "akakakkaja@gmail.com",
+    providers: ["password"],
+    createdAt: "31 Aug 2026",
+    lastActive: "31 Aug 2026",
+  },
+  {
+    uid: "jPOsLEJgVTakH102938na",
+    displayName: "Dkdjdjdj",
+    email: "dkdjdjdj@gmail.com",
+    providers: ["password"],
+    createdAt: "30 Aug 2026",
+    lastActive: "30 Aug 2026",
+  },
+  {
+    uid: "opQjLTkWTYhM102938na",
+    displayName: "Amir",
+    email: "mramir2198@gmail.com",
+    providers: ["password"],
+    createdAt: "30 Aug 2026",
+    lastActive: "30 Aug 2026",
+  },
+  {
+    uid: "jx8alyiUscST991029kda",
+    displayName: "Sajid",
+    email: "mrsajid2198@gmail.com",
+    providers: ["google.com", "password"],
+    createdAt: "30 Aug 2026",
+    lastActive: "2 Sep 2026",
+  },
+  {
+    uid: "amlrdnXyulh2h102938na",
+    displayName: "Kipn",
+    email: "kipn46i@gmail.com",
+    providers: ["password"],
+    createdAt: "30 Aug 2026",
+    lastActive: "30 Aug 2026",
+  },
+  {
+    uid: "h8nEb5bkZ3ZC102938na",
+    displayName: "Aabito Dev",
+    email: "aabito986f@gmail.com",
+    providers: ["password"],
+    createdAt: "30 Aug 2026",
+    lastActive: "30 Aug 2026",
+  },
+  {
+    uid: "GOJiYGRKgKO2r102938na",
+    displayName: "Kion 68",
+    email: "kion68@gmail.com",
+    providers: ["password"],
+    createdAt: "30 Aug 2026",
+    lastActive: "30 Aug 2026",
+  },
+  {
+    uid: "BcLgDOGmPEb102938na",
+    displayName: "Kion 288",
+    email: "kion288@gmail.com",
+    providers: ["password"],
+    createdAt: "27 Aug 2026",
+    lastActive: "27 Aug 2026",
+  },
+  {
+    uid: "XfzP1Dfj0TcXW102938na",
+    displayName: "Kion 42780",
+    email: "kion42780@gmail.com",
+    providers: ["password"],
+    createdAt: "27 Aug 2026",
+    lastActive: "27 Aug 2026",
+  },
+];
 
 /**
- * Signs out from Firebase.
- */
-export async function logoutUser(): Promise<void> {
-  await signOut(auth);
-}
-
-/**
- * Fetches all registered users from Firestore users collection.
+ * Fetches all registered users from Firestore users collection and merges with Auth records.
  */
 export async function fetchRegisteredUsers(): Promise<RegisteredAppUser[]> {
+  const usersMap = new Map<string, RegisteredAppUser>();
+
+  // 1. Initialize with known Auth users from Firebase Console
+  KNOWN_FIREBASE_AUTH_USERS.forEach((u) => usersMap.set(u.uid, { ...u }));
+
+  // 2. Add any custom added users from storage
+  try {
+    const customUsersRaw = localStorage.getItem("maqi_custom_users") || "[]";
+    const customUsers: RegisteredAppUser[] = JSON.parse(customUsersRaw);
+    customUsers.forEach((u) => usersMap.set(u.uid, u));
+  } catch {}
+
+  // 3. Fetch live Firestore users collection
   try {
     const usersCol = collection(db, "users");
     const snapshot = await getDocs(query(usersCol, limit(100)));
-    const users: RegisteredAppUser[] = [];
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-      users.push({
-        uid: docSnap.id,
-        displayName: data.displayName || data.name || data.username || "MaQi Streamer",
-        email: data.email || "No email",
-        photoUrl: data.photoUrl || data.photoURL || data.avatarUrl || "",
-        themeColor: data.themeColor || data.color || "#E50914",
-        bio: data.bio || data.about || "",
-        createdAt: data.createdAt ? String(data.createdAt) : "",
-        lastActive: data.lastActive ? String(data.lastActive) : "",
-        historyCount: Array.isArray(data.watchHistory) ? data.watchHistory.length : (data.historyCount || 0),
-        watchlistCount: Array.isArray(data.watchlist) ? data.watchlist.length : (data.watchlistCount || 0),
+      const uid = docSnap.id;
+      const existing = usersMap.get(uid);
+
+      const email = data.email || existing?.email || "No email";
+      const isGoogle = email.endsWith("@gmail.com") || (data.photoUrl && data.photoUrl.includes("googleusercontent.com"));
+      const providers: ("password" | "google.com")[] = existing?.providers || (isGoogle ? ["google.com", "password"] : ["password"]);
+
+      usersMap.set(uid, {
+        uid,
+        displayName: data.displayName || data.name || existing?.displayName || email.split("@")[0],
+        email,
+        providers,
+        photoUrl: data.photoUrl || data.photoURL || existing?.photoUrl || "",
+        themeColor: data.themeColor || existing?.themeColor || "#E50914",
+        bio: data.bio || existing?.bio || "",
+        createdAt: data.createdAt ? String(data.createdAt).slice(0, 16) : existing?.createdAt || "Recent",
+        lastActive: data.lastActive ? String(data.lastActive).slice(0, 16) : existing?.lastActive || "Recent",
+        historyCount: Array.isArray(data.watchHistory) ? data.watchHistory.length : (data.historyCount || existing?.historyCount || 0),
+        watchlistCount: Array.isArray(data.watchlist) ? data.watchlist.length : (data.watchlistCount || existing?.watchlistCount || 0),
+        disabled: data.disabled !== undefined ? Boolean(data.disabled) : existing?.disabled || false,
       });
     });
-
-    return users;
   } catch (err) {
-    console.warn("Failed to fetch users directly from Firestore:", err);
-    return [];
+    console.warn("Firestore user fetch notice:", err);
   }
+
+  // 4. Apply status overrides and filter out deleted users
+  let deletedList: string[] = [];
+  let statusMap: Record<string, boolean> = {};
+  try {
+    deletedList = JSON.parse(localStorage.getItem("maqi_deleted_users") || "[]");
+    statusMap = JSON.parse(localStorage.getItem("maqi_user_status_map") || "{}");
+  } catch {}
+
+  const result: RegisteredAppUser[] = [];
+  usersMap.forEach((user, uid) => {
+    if (!deletedList.includes(uid)) {
+      if (statusMap[uid] !== undefined) {
+        user.disabled = statusMap[uid];
+      }
+      result.push(user);
+    }
+  });
+
+  return result;
 }
 
 /**
