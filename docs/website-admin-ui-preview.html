@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MaQi Studio · Website Control</title>
+<style>
+:root{color-scheme:dark;--bg:#090a0f;--panel:#11131b;--panel2:#171a24;--line:#252938;--muted:#8f96aa;--text:#f4f5fb;--purple:#a78bfa;--green:#67e8b2}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#29204a 0,transparent 35%),var(--bg);color:var(--text);font:14px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.shell{display:grid;grid-template-columns:238px minmax(0,1fr);min-height:100vh}.side{border-right:1px solid var(--line);padding:25px 15px;background:#0b0c12}.brand{display:flex;align-items:center;gap:11px;padding:0 10px 28px}.logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(140deg,#c4b5fd,#6d48d9);display:grid;place-items:center;color:#100b1d;font-weight:900;font-size:20px;box-shadow:0 6px 25px #8b5cf633}.brand b{font-size:16px;letter-spacing:.2px}.brand small{display:block;color:var(--muted);font-size:11px}.group{color:#626b80;text-transform:uppercase;font-size:10px;letter-spacing:1.6px;padding:10px 12px}.nav{display:flex;align-items:center;gap:12px;color:#9ca3b6;text-decoration:none;padding:11px 12px;border-radius:11px;margin:3px 0}.nav .ico{width:18px;text-align:center}.nav.active{color:#e9e3ff;background:#8b5cf61b;box-shadow:inset 2px 0 #a78bfa}.sidebottom{position:absolute;bottom:20px;width:205px;border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--panel)}.profile{display:flex;gap:10px;align-items:center}.avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#30294b;color:#d9ceff;font-weight:700}.profile small{display:block;color:var(--muted);font-size:11px}.main{min-width:0;padding:28px clamp(16px,3vw,42px) 45px;max-width:1500px;width:100%;margin:auto}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}.crumb{color:var(--muted);font-size:12px;margin-bottom:5px}.top h1{font-size:25px;letter-spacing:-.7px;margin:0}.topright{display:flex;gap:10px;align-items:center}.status{border:1px solid #225640;background:#10251e;color:var(--green);border-radius:999px;padding:7px 11px;font-size:12px}.btn{border:1px solid var(--line);border-radius:10px;background:#181a25;color:#e8e9f2;padding:10px 14px;font-weight:600}.btn.primary{border-color:#a78bfa;background:#a78bfa;color:#130d20}.btn:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--purple);outline-offset:2px}.intro{display:flex;justify-content:space-between;align-items:end;gap:16px;margin-bottom:18px}.intro h2{font-size:16px;margin:0 0 4px}.intro p{margin:0;color:var(--muted);font-size:12px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}.card{background:linear-gradient(145deg,#141621,#101119);border:1px solid var(--line);border-radius:16px;padding:17px;min-width:0}.metric-label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}.metric{font-size:27px;font-weight:750;letter-spacing:-.8px;margin:12px 0 4px}.hint{font-size:11px;color:#7c8499}.hint.good{color:var(--green)}.contentgrid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.8fr);gap:14px;margin-top:15px}.cardhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}.cardhead h3{margin:0;font-size:14px}.muted{color:var(--muted)}.chart{height:175px;display:flex;align-items:end;gap:clamp(5px,1.3vw,14px);padding:15px 2px 0;border-bottom:1px solid var(--line);background:repeating-linear-gradient(to bottom,transparent 0,transparent 42px,#252938 43px,#252938 44px)}.bar{flex:1;min-width:5px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#b7a1ff,#7052c9);opacity:.9;position:relative}.days{display:flex;justify-content:space-between;color:#70798e;font-size:10px;padding-top:9px}.empty{height:220px;display:grid;place-items:center;text-align:center;padding:20px;color:var(--muted)}.empty strong{display:block;color:#e4e5ef;font-size:13px;margin-bottom:6px}.empty .bubble{margin:0 auto 12px;width:42px;height:42px;border:1px solid var(--line);border-radius:14px;display:grid;place-items:center;color:var(--purple);font-size:18px}.section-title{font-size:16px;margin:27px 0 4px}.section-sub{font-size:12px;color:var(--muted);margin:0 0 16px}.settings{display:grid;grid-template-columns:190px minmax(0,1fr);gap:15px;margin-top:15px}.tabs{align-self:start;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px}.tab{padding:10px 11px;border-radius:9px;color:var(--muted);cursor:pointer;margin:2px 0}.tab.active{background:#8b5cf61b;color:#e9e3ff}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{font-size:12px;color:#c8ccda}.field input,.field textarea{width:100%;border:1px solid #2a2e3d;border-radius:10px;background:#0b0d14;color:var(--text);padding:11px 12px;outline:none}.field textarea{resize:vertical;min-height:82px}.field small{font-size:11px;color:#7c8499}.savebar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:20px;padding-top:17px;border-top:1px solid var(--line)}.savebar span{color:var(--muted);font-size:11px}.preview{border:1px solid var(--line);background:#0a0b10;border-radius:13px;overflow:hidden}.preview img{display:block;width:100%;height:90px;object-fit:cover;background:#191526}.previewbody{padding:13px}.previewbody small{color:var(--muted);font-size:10px}.previewbody b{display:block;margin:5px 0}.previewbody p{color:var(--muted);font-size:11px;margin:0}.footer{color:#687086;font-size:11px;text-align:center;margin-top:30px}.toast{position:fixed;right:20px;bottom:20px;background:#19251f;border:1px solid #2b6c50;color:#b5f4d4;padding:12px 16px;border-radius:12px;display:none}.mobilemenu{display:none}
+@media(max-width:950px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.contentgrid{grid-template-columns:1fr}.side{width:68px;padding:20px 8px}.brand{padding:0 7px 25px}.brandtext,.group,.nav span:not(.ico),.sidebottom{display:none}.nav{justify-content:center;padding:12px 4px}.shell{grid-template-columns:68px minmax(0,1fr)}.settings{grid-template-columns:1fr}.tabs{display:flex;overflow:auto;gap:4px}.tab{white-space:nowrap}.main{padding-top:20px}}
+@media(max-width:560px){.shell{display:block}.side{position:sticky;top:0;z-index:3;width:100%;height:62px;border-right:0;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:7px 12px}.brand{padding:0;margin-right:auto}.brandtext{display:block}.logo{width:34px;height:34px}.side nav{display:flex;gap:2px}.nav{margin:0;width:37px;height:38px}.nav span:not(.ico){display:none}.group,.sidebottom{display:none}.main{padding:20px 14px 35px}.top{align-items:flex-start;margin-bottom:23px}.top h1{font-size:22px}.topright{gap:6px}.topright .btn{padding:9px;font-size:12px}.status{font-size:10px;padding:7px}.intro{align-items:flex-start;flex-direction:column}.grid{gap:9px}.card{padding:13px;border-radius:13px}.metric{font-size:23px}.metric-label{font-size:11px}.formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}.savebar{align-items:flex-start;flex-direction:column}.savebar .btn{width:100%}.settings{gap:10px}.tabs{margin:0 -1px}.footer{text-align:left}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+<div class="brand"><div class="logo">M</div><div class="brandtext"><b>MaQi Studio</b><small>Website Control</small></div></div>
+<nav>
+<div class="group">Workspace</div>
+<a class="nav active" href="#overview" data-page="overview"><span class="ico">◫</span><span>Overview</span></a>
+<a class="nav" href="#settings" data-page="settings"><span class="ico">⚙</span><span>Website settings</span></a>
+<a class="nav" href="#content" data-page="content"><span class="ico">▤</span><span>Content & links</span></a>
+<a class="nav" href="#seo" data-page="seo"><span class="ico">◎</span><span>SEO & preview</span></a>
+<a class="nav" href="#analytics" data-page="analytics"><span class="ico">⌁</span><span>Analytics</span></a>
+<div class="group" style="margin-top:20px">Website</div>
+<a class="nav" href="https://maqiii.web.app" target="_blank" rel="noreferrer"><span class="ico">↗</span><span>Open live website</span></a>
+</nav>
+</aside>
+<main class="main">
+<header class="top"><div><div class="crumb">Workspace / Website</div><h1 id="pagetitle">Website overview</h1></div><div class="topright"><span class="status">● Live website</span><button class="btn" id="previewBtn">↗ Preview</button></div></header>
+<section id="overview" class="page">
+<div class="intro"><div><h2>Your website at a glance</h2><p>Manage the MaQi APK download website without editing code.</p></div><button class="btn primary" data-goto="settings">Edit website ↗</button></div>
+<div class="grid">
+<div class="card"><div class="metric-label">Unique visitors <span>ⓘ</span></div><div class="metric">—</div><div class="hint">Analytics connection required</div></div>
+<div class="card"><div class="metric-label">Page views <span>ⓘ</span></div><div class="metric">—</div><div class="hint">Analytics connection required</div></div>
+<div class="card"><div class="metric-label">APK download clicks <span>↗</span></div><div class="metric">—</div><div class="hint">GA4 reporting not connected</div></div>
+<div class="card"><div class="metric-label">Published version <span>◉</span></div><div class="metric">v1.0.0</div><div class="hint good">Using current website defaults</div></div>
+</div>
+<div class="contentgrid">
+<div class="card"><div class="cardhead"><h3>Website traffic</h3><span class="muted" style="font-size:11px">Last 7 days</span></div><div class="empty" style="height:175px"><div><div class="bubble">⌁</div><strong>Analytics not connected</strong>Real traffic charts will appear after the reporting API is configured. No made-up numbers.</div></div></div>
+<div class="card"><div class="cardhead"><h3>Website status</h3><span class="status">Live</span></div><div style="display:grid;gap:13px"><div><div class="muted" style="font-size:11px">PUBLIC WEBSITE</div><b>maqiii.web.app</b></div><div><div class="muted" style="font-size:11px">CONFIG SOURCE</div><b>Current website defaults</b></div><div><div class="muted" style="font-size:11px">LAST PUBLISH</div><b>Not available yet</b></div><button class="btn" data-goto="settings">Manage settings →</button></div></div>
+</div>
+<h2 class="section-title">Quick actions</h2><p class="section-sub">The common website tasks, right where they belong.</p>
+<div class="grid">
+<div class="card"><div style="font-size:20px;margin-bottom:12px">⇩</div><b>APK release details</b><p class="muted">Version, size, date and download URL.</p><button class="btn" data-goto="settings">Edit release</button></div>
+<div class="card"><div style="font-size:20px;margin-bottom:12px">✎</div><b>Homepage content</b><p class="muted">Headline, description and notice banner.</p><button class="btn" data-goto="content">Edit content</button></div>
+<div class="card"><div style="font-size:20px;margin-bottom:12px">▧</div><b>Social preview</b><p class="muted">SEO details and share image.</p><button class="btn" data-goto="seo">Edit preview</button></div>
+<div class="card"><div style="font-size:20px;margin-bottom:12px">◷</div><b>Analytics</b><p class="muted">Connect reporting before showing metrics.</p><button class="btn" data-goto="analytics">View status</button></div>
+</div>
+</section>
+<section id="settings" class="page" hidden>
+<div class="intro"><div><h2>Website settings</h2><p>These are website-only settings. Your Android app is not changed.</p></div><span class="muted" style="font-size:11px">Draft changes</span></div>
+<div class="settings"><div class="tabs"><div class="tab active" data-tab="release">APK release</div><div class="tab" data-tab="homepage">Homepage</div><div class="tab" data-tab="links">Links & support</div></div>
+<div class="card"><div id="formtitle" class="cardhead"><h3>Download configuration</h3><span class="muted" style="font-size:11px">Website only</span></div>
+<div class="formgrid" id="form-release">
+<div class="field full"><label for="apkUrl">APK download URL</label><input id="apkUrl" value="https://github.com/chaiwala78/Chaiwala-/releases/download/v1.0.1/MaQi.apk"><small>Must be a valid HTTPS download URL.</small></div>
+<div class="field"><label for="version">Version label</label><input id="version" value="v1.0.0"></div>
+<div class="field"><label for="size">File size</label><input id="size" value="~30 MB"></div>
+<div class="field"><label for="date">Release date</label><input id="date" value="August 2026"></div>
+<div class="field"><label for="android">Minimum Android version</label><input id="android" value="8.0+"></div>
+</div>
+<div class="formgrid" id="form-homepage" hidden>
+<div class="field full"><label for="headline">Homepage headline</label><input id="headline" value="Your next anime obsession starts here."></div>
+<div class="field full"><label for="description">Homepage description</label><textarea id="description">Discover anime and stream your favourites with MaQi.</textarea></div>
+<div class="field full"><label for="announcement">Announcement banner</label><input id="announcement" placeholder="Leave empty to hide the banner"></div>
+</div>
+<div class="formgrid" id="form-links" hidden>
+<div class="field"><label for="email">Support email</label><input id="email" value="support.maqi@gmail.com"></div>
+<div class="field"><label for="telegram">Telegram URL</label><input id="telegram" value="https://t.me/maQigc"></div>
+<div class="field"><label for="discord">Discord URL</label><input id="discord" placeholder="https://discord.gg/..."></div>
+<div class="field"><label for="github">GitHub URL</label><input id="github" placeholder="https://github.com/..."></div>
+</div>
+<div class="savebar"><span id="saveStatus">Demo preview only · not connected to live settings</span><button class="btn primary" id="saveBtn">Save draft locally</button></div>
+</div></div>
+</section>
+<section id="content" class="page" hidden>
+<div class="intro"><div><h2>Content & links</h2><p>Control what visitors see on the download website.</p></div></div>
+<div class="card"><div class="formgrid">
+<div class="field full"><label for="headline2">Homepage headline</label><input id="headline2" value="Your next anime obsession starts here."></div>
+<div class="field full"><label for="description2">Homepage description</label><textarea id="description2">Discover anime and stream your favourites with MaQi.</textarea></div>
+<div class="field full"><label for="announcement2">Announcement banner</label><input id="announcement2" placeholder="Example: New update available"></div>
+<div class="field"><label for="email2">Support email</label><input id="email2" value="support.maqi@gmail.com"></div>
+<div class="field"><label for="telegram2">Telegram URL</label><input id="telegram2" value="https://t.me/maQigc"></div>
+<div class="field"><label for="discord2">Discord URL</label><input id="discord2" placeholder="https://discord.gg/..."></div>
+<div class="field"><label for="github2">GitHub URL</label><input id="github2" placeholder="https://github.com/..."></div>
+</div><div class="savebar"><span>Draft only · publish API not connected</span><button class="btn primary" id="contentSave">Save draft locally</button></div></div>
+</section>
+<section id="seo" class="page" hidden>
+<div class="intro"><div><h2>SEO & social preview</h2><p>Shape how MaQi looks in search results and shared links.</p></div></div>
+<div class="contentgrid"><div class="card"><div class="formgrid">
+<div class="field full"><label for="seoTitle">SEO title</label><input id="seoTitle" value="MaQi · Anime Streaming App"></div>
+<div class="field full"><label for="seoDesc">SEO description</label><textarea id="seoDesc">Discover your next favourite anime with MaQi.</textarea></div>
+<div class="field full"><label for="ogImage">Open Graph preview image URL</label><input id="ogImage" value="https://i.ibb.co/Xxw5HcnM/maqi-icon.png"></div>
+</div><div class="savebar"><span>Preview is illustrative, not published.</span><button class="btn primary" id="seoSave">Save draft locally</button></div></div>
+<div class="card"><div class="cardhead"><h3>Social share preview</h3><span class="muted">Example</span></div><div class="preview"><img id="previewImage" src="https://i.ibb.co/Xxw5HcnM/maqi-icon.png" alt="Preview image"><div class="previewbody"><small>MAQIII.WEB.APP</small><b id="previewTitle">MaQi · Anime Streaming App</b><p id="previewDesc">Discover your next favourite anime with MaQi.</p></div></div><p class="muted" style="font-size:11px;margin-top:12px">Real messaging apps may cache old previews until their cache refreshes.</p></div></div>
+</section>
+<section id="analytics" class="page" hidden>
+<div class="intro"><div><h2>Website analytics</h2><p>Traffic and APK button clicks, not confirmed installs.</p></div><span class="status">Connection needed</span></div>
+<div class="grid"><div class="card"><div class="metric-label">Visitors</div><div class="metric">—</div><div class="hint">Not connected</div></div><div class="card"><div class="metric-label">Page views</div><div class="metric">—</div><div class="hint">Not connected</div></div><div class="card"><div class="metric-label">APK button clicks</div><div class="metric">—</div><div class="hint">GA4 event planned</div></div><div class="card"><div class="metric-label">Top referrers</div><div class="metric">—</div><div class="hint">Not connected</div></div></div>
+<div class="card" style="margin-top:15px"><div class="cardhead"><h3>Reporting connection</h3><span class="status">Not connected</span></div><p class="muted">The website can send the apk_download_click event to GA4. To show real counts here, a secure server-side reporting connection still needs to be configured. No GA credentials or private keys belong in this browser UI.</p><button class="btn" id="analyticsInfo">Connection requirements</button><p id="analyticsDetails" class="muted" hidden style="font-size:12px">Required: GA4 property access, a server-side reporting endpoint, and credentials stored securely on the server. The browser must never receive those credentials.</p></div>
+</section>
+<div class="footer">MaQi Studio · Website controls prototype · No live changes are made from this preview.</div>
+</main></div>
+<div class="toast" id="toast">Draft saved in this preview.</div>
+<script>
+const pages=[...document.querySelectorAll('.page')], links=[...document.querySelectorAll('[data-page]')], title=document.getElementById('pagetitle');
+function go(id){pages.forEach(p=>p.hidden=p.id!==id);links.forEach(a=>a.classList.toggle('active',a.dataset.page===id));title.textContent=({overview:'Website overview',settings:'Website settings',content:'Content & links',seo:'SEO & preview',analytics:'Website analytics'})[id]||'Website overview';location.hash=id;window.scrollTo({top:0,behavior:'smooth'})}
+document.querySelectorAll('[data-page]').forEach(a=>a.addEventListener('click',e=>{if(a.dataset.page){e.preventDefault();go(a.dataset.page)}}));
+document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.goto)));
+document.getElementById('previewBtn').addEventListener('click',()=>window.open('https://maqiii.web.app','_blank','noopener'));
+document.querySelectorAll('[data-tab]').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===t));['release','homepage','links'].forEach(k=>document.getElementById('form-'+k).hidden=k!==t.dataset.tab);document.querySelector('#formtitle h3').textContent=({release:'Download configuration',homepage:'Homepage content',links:'Support & social links'})[t.dataset.tab]}));
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2200)}
+function saveDraft(){const fields=[...document.querySelectorAll('input,textarea')].map(e=>({id:e.id,value:e.value}));try{localStorage.setItem('maqi-website-draft-preview',JSON.stringify(fields));toast('Draft saved on this device only.');document.getElementById('saveStatus').textContent='Saved locally in this browser · not published'}catch(e){toast('Browser storage unavailable.')}}
+['saveBtn','contentSave','seoSave'].forEach(id=>document.getElementById(id).addEventListener('click',saveDraft));
+['seoTitle','seoDesc','ogImage'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{document.getElementById('previewTitle').textContent=document.getElementById('seoTitle').value;document.getElementById('previewDesc').textContent=document.getElementById('seoDesc').value;document.getElementById('previewImage').src=document.getElementById('ogImage').value}));
+document.getElementById('analyticsInfo').addEventListener('click',()=>document.getElementById('analyticsDetails').hidden=!document.getElementById('analyticsDetails').hidden);
+if(location.hash&&document.getElementById(location.hash.slice(1))?.classList.contains('page'))go(location.hash.slice(1));
+</script>
+</body></html>
