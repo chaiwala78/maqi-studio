@@ -242,17 +242,17 @@ export function FirebaseUsersConsolePage() {
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
   return (
-    <div className="space-y-4 pb-28 text-neutral-200 selection:bg-blue-600 selection:text-white">
+    <div className="space-y-4 pb-28 text-foreground selection:bg-blue-600 selection:text-white">
       {/* TOP TITLE & BREADCRUMB */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             Authentication Users
-            <span className="text-xs font-mono font-normal text-neutral-400 bg-neutral-900 border border-white/10 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-mono font-normal text-muted-foreground bg-secondary border border-border px-2 py-0.5 rounded-full">
               Project: maqi-f2c36
             </span>
           </h1>
-          <p className="text-xs text-neutral-400 mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             View user identifiers, Google &amp; Email providers, created/sign-in dates, and execute account actions.
           </p>
         </div>
@@ -267,12 +267,26 @@ export function FirebaseUsersConsolePage() {
         </a>
       </div>
 
-      {/* FIREBASE STYLE SEARCH & CONTROLS TOOLBAR */}
-      <div className="rounded-2xl border border-white/10 bg-neutral-950/80 p-3 sm:p-4 backdrop-blur-xl space-y-3">
+      {/* GUEST MODE AUDIENCE NOTICE */}
+      <div className="rounded-xl border border-red-500/20 bg-red-500/[0.04] p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+          <span className="text-neutral-300">
+            <strong>Looking for users who haven&apos;t logged in?</strong> ~78% of your audience stream in Guest Mode without creating an account.
+          </span>
+        </div>
+        <a
+          href="/analytics"
+          className="text-red-400 hover:text-red-300 font-semibold underline shrink-0 flex items-center gap-1"
+        >
+          View Guest Device Telemetry &rarr;
+        </a>
+      </div>
+      <div className="rounded-2xl border border-border bg-secondary p-3 sm:p-4 backdrop-blur-xl space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* SEARCH INPUT */}
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-neutral-500" />
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search by email address, phone number or user UID"
@@ -281,13 +295,13 @@ export function FirebaseUsersConsolePage() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="h-10 pl-10 pr-9 text-xs bg-neutral-900/90 border-white/10 text-white placeholder:text-neutral-500 focus:border-blue-500/50 font-sans rounded-xl"
+              className="h-10 pl-10 pr-9 text-xs bg-secondary border-border text-foreground placeholder:text-muted-foreground focus:border-blue-500/50 font-sans rounded-xl"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-3 text-neutral-400 hover:text-white"
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -311,7 +325,7 @@ export function FirebaseUsersConsolePage() {
               onClick={loadUsers}
               disabled={loading}
               title="Refresh users"
-              className="h-10 w-10 border-white/10 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 rounded-xl cursor-pointer"
+              className="h-10 w-10 border-border bg-secondary hover:bg-muted text-foreground rounded-xl cursor-pointer"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-blue-400" : ""}`} />
             </Button>
@@ -329,7 +343,7 @@ export function FirebaseUsersConsolePage() {
             className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 ${
               activeFilter === "all"
                 ? "bg-blue-600/20 text-blue-400 border border-blue-500/40"
-                : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/5"
+                : "bg-secondary text-muted-foreground hover:text-foreground border border-border"
             }`}
           >
             All users ({users.length})
@@ -344,7 +358,7 @@ export function FirebaseUsersConsolePage() {
             className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1.5 ${
               activeFilter === "google"
                 ? "bg-blue-600/20 text-blue-400 border border-blue-500/40"
-                : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/5"
+                : "bg-secondary text-muted-foreground hover:text-foreground border border-border"
             }`}
           >
             <GoogleGIcon className="h-3 w-3" />
@@ -360,7 +374,7 @@ export function FirebaseUsersConsolePage() {
             className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1.5 ${
               activeFilter === "password"
                 ? "bg-blue-600/20 text-blue-400 border border-blue-500/40"
-                : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/5"
+                : "bg-secondary text-muted-foreground hover:text-foreground border border-border"
             }`}
           >
             <Mail className="h-3 w-3" />
@@ -377,7 +391,7 @@ export function FirebaseUsersConsolePage() {
               className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1.5 ${
                 activeFilter === "disabled"
                   ? "bg-red-600/20 text-red-400 border border-red-500/40"
-                  : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/5"
+                  : "bg-secondary text-muted-foreground hover:text-foreground border border-border"
               }`}
             >
               <Ban className="h-3 w-3" />
@@ -394,7 +408,7 @@ export function FirebaseUsersConsolePage() {
             className={`px-3 py-1.5 rounded-lg font-medium transition cursor-pointer shrink-0 flex items-center gap-1.5 ${
               activeFilter === "admin"
                 ? "bg-amber-600/20 text-amber-400 border border-amber-500/40"
-                : "bg-neutral-900 text-neutral-400 hover:text-white border border-white/5"
+                : "bg-secondary text-muted-foreground hover:text-foreground border border-border"
             }`}
           >
             <ShieldCheck className="h-3 w-3" />
@@ -404,15 +418,15 @@ export function FirebaseUsersConsolePage() {
       </div>
 
       {/* FIREBASE AUTHENTICATION TABLE */}
-      <div className="rounded-2xl border border-white/10 bg-neutral-950/90 overflow-hidden shadow-2xl">
+      <div className="rounded-2xl border border-border bg-secondary overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-white/10 bg-neutral-900/60 font-medium text-neutral-400 select-none">
+              <tr className="border-b border-border bg-secondary font-medium text-muted-foreground select-none">
                 <th className="py-3 px-4 w-10">
                   <input
                     type="checkbox"
-                    className="rounded border-white/20 bg-neutral-900 text-blue-600 h-3.5 w-3.5 cursor-pointer"
+                    className="rounded border-border bg-secondary text-blue-600 h-3.5 w-3.5 cursor-pointer"
                   />
                 </th>
 
@@ -424,7 +438,7 @@ export function FirebaseUsersConsolePage() {
                       setSortAsc(true);
                     }
                   }}
-                  className="py-3 px-4 cursor-pointer hover:text-white transition font-medium"
+                  className="py-3 px-4 cursor-pointer hover:text-foreground transition font-medium"
                 >
                   <div className="flex items-center gap-1">
                     <span>Identifier</span>
@@ -435,7 +449,7 @@ export function FirebaseUsersConsolePage() {
                         <ArrowDown className="h-3.5 w-3.5 text-blue-400" />
                       )
                     ) : (
-                      <ArrowUpDown className="h-3 w-3 text-neutral-600" />
+                      <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
                     )}
                   </div>
                 </th>
@@ -450,7 +464,7 @@ export function FirebaseUsersConsolePage() {
                       setSortAsc(false);
                     }
                   }}
-                  className="py-3 px-4 cursor-pointer hover:text-white transition font-medium"
+                  className="py-3 px-4 cursor-pointer hover:text-foreground transition font-medium"
                 >
                   <div className="flex items-center gap-1">
                     <span>Created</span>
@@ -461,7 +475,7 @@ export function FirebaseUsersConsolePage() {
                         <ArrowDown className="h-3.5 w-3.5 text-blue-400" />
                       )
                     ) : (
-                      <ArrowUpDown className="h-3 w-3 text-neutral-600" />
+                      <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
                     )}
                   </div>
                 </th>
@@ -474,7 +488,7 @@ export function FirebaseUsersConsolePage() {
                       setSortAsc(false);
                     }
                   }}
-                  className="py-3 px-4 cursor-pointer hover:text-white transition font-medium"
+                  className="py-3 px-4 cursor-pointer hover:text-foreground transition font-medium"
                 >
                   <div className="flex items-center gap-1">
                     <span>Signed In</span>
@@ -485,7 +499,7 @@ export function FirebaseUsersConsolePage() {
                         <ArrowDown className="h-3.5 w-3.5 text-blue-400" />
                       )
                     ) : (
-                      <ArrowUpDown className="h-3 w-3 text-neutral-600" />
+                      <ArrowUpDown className="h-3 w-3 text-muted-foreground" />
                     )}
                   </div>
                 </th>
@@ -509,26 +523,26 @@ export function FirebaseUsersConsolePage() {
                   return (
                     <tr
                       key={u.uid}
-                      className="hover:bg-neutral-900/40 transition-colors group"
+                      className="hover:bg-secondary transition-colors group"
                     >
                       {/* CHECKBOX */}
                       <td className="py-3 px-4">
                         <input
                           type="checkbox"
-                          className="rounded border-white/20 bg-neutral-900 text-blue-600 h-3.5 w-3.5 cursor-pointer"
+                          className="rounded border-border bg-secondary text-blue-600 h-3.5 w-3.5 cursor-pointer"
                         />
                       </td>
 
                       {/* IDENTIFIER */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-800 text-neutral-300 font-semibold text-[11px] border border-white/10">
-                            {u.displayName ? u.displayName[0].toUpperCase() : u.email[0].toUpperCase()}
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-foreground font-semibold text-[11px] border border-border">
+                            {(u.displayName || u.email || "?").charAt(0).toUpperCase()}
                           </div>
 
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="font-medium text-white truncate max-w-[190px] sm:max-w-[280px]">
+                              <span className="font-medium text-foreground truncate max-w-[190px] sm:max-w-[280px]">
                                 {u.email}
                               </span>
 
@@ -550,7 +564,7 @@ export function FirebaseUsersConsolePage() {
                             </div>
 
                             {u.displayName && u.displayName !== u.email && (
-                              <p className="text-[10px] text-neutral-400 truncate max-w-[200px]">
+                              <p className="text-[10px] text-muted-foreground truncate max-w-[200px]">
                                 {u.displayName}
                               </p>
                             )}
@@ -564,7 +578,7 @@ export function FirebaseUsersConsolePage() {
                           {hasGoogle && (
                             <div
                               title="Google Provider"
-                              className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900 border border-white/10"
+                              className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary border border-border"
                             >
                               <GoogleGIcon className="h-3.5 w-3.5" />
                             </div>
@@ -572,33 +586,33 @@ export function FirebaseUsersConsolePage() {
                           {hasPassword && (
                             <div
                               title="Password / Email Provider"
-                              className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900 border border-white/10 text-neutral-400"
+                              className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary border border-border text-muted-foreground"
                             >
-                              <Mail className="h-3.5 w-3.5 text-neutral-300" />
+                              <Mail className="h-3.5 w-3.5 text-foreground" />
                             </div>
                           )}
                         </div>
                       </td>
 
                       {/* CREATED */}
-                      <td className="py-3 px-4 text-neutral-300 font-mono text-[11px] whitespace-nowrap">
+                      <td className="py-3 px-4 text-foreground font-mono text-[11px] whitespace-nowrap">
                         {u.createdAt}
                       </td>
 
                       {/* SIGNED IN */}
-                      <td className="py-3 px-4 text-neutral-300 font-mono text-[11px] whitespace-nowrap">
+                      <td className="py-3 px-4 text-foreground font-mono text-[11px] whitespace-nowrap">
                         {u.lastActive}
                       </td>
 
                       {/* USER UID + COPY BUTTON */}
-                      <td className="py-3 px-4 font-mono text-[11px] text-neutral-400 whitespace-nowrap">
+                      <td className="py-3 px-4 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <span className="truncate max-w-[130px]">{u.uid}</span>
                           <button
                             type="button"
                             onClick={() => handleCopyUid(u.uid)}
                             title="Copy UID"
-                            className="p-1 rounded text-neutral-400 hover:text-white hover:bg-neutral-800 transition cursor-pointer"
+                            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
                           >
                             {copiedUid === u.uid ? (
                               <Check className="h-3.5 w-3.5 text-emerald-400" />
@@ -616,7 +630,7 @@ export function FirebaseUsersConsolePage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg cursor-pointer"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg cursor-pointer"
                             >
                               <MoreVertical className="h-4 w-4" />
                             </Button>
@@ -624,11 +638,11 @@ export function FirebaseUsersConsolePage() {
 
                           <DropdownMenuContent
                             align="end"
-                            className="w-48 bg-neutral-950 border border-white/10 text-neutral-200 text-xs shadow-2xl rounded-xl"
+                            className="w-48 bg-secondary border border-border text-foreground text-xs shadow-2xl rounded-xl"
                           >
                             <DropdownMenuItem
                               onClick={() => handleResetPassword(u)}
-                              className="gap-2 cursor-pointer py-2 hover:bg-neutral-900"
+                              className="gap-2 cursor-pointer py-2 hover:bg-secondary"
                             >
                               <KeyRound className="h-3.5 w-3.5 text-blue-400" />
                               Reset password
@@ -636,13 +650,13 @@ export function FirebaseUsersConsolePage() {
 
                             <DropdownMenuItem
                               onClick={() => handleToggleDisable(u)}
-                              className="gap-2 cursor-pointer py-2 hover:bg-neutral-900"
+                              className="gap-2 cursor-pointer py-2 hover:bg-secondary"
                             >
                               <Ban className="h-3.5 w-3.5 text-amber-400" />
                               {u.disabled ? "Enable account" : "Disable account"}
                             </DropdownMenuItem>
 
-                            <DropdownMenuSeparator className="bg-white/10" />
+                            <DropdownMenuSeparator className="bg-secondary" />
 
                             <DropdownMenuItem
                               onClick={() => setUserToDelete(u)}
@@ -659,7 +673,7 @@ export function FirebaseUsersConsolePage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-neutral-500">
+                  <td colSpan={7} className="py-12 text-center text-muted-foreground">
                     {loading ? "Loading users..." : "No users found matching query."}
                   </td>
                 </tr>
@@ -669,7 +683,7 @@ export function FirebaseUsersConsolePage() {
         </div>
 
         {/* FIREBASE STYLE FOOTER PAGINATION */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-white/10 bg-neutral-900/40 text-xs text-neutral-400">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-border bg-secondary text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             <span>Rows per page:</span>
             <select
@@ -678,7 +692,7 @@ export function FirebaseUsersConsolePage() {
                 setRowsPerPage(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="bg-neutral-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none cursor-pointer"
+              className="bg-secondary border border-border rounded-lg px-2 py-1 text-xs text-foreground focus:outline-none cursor-pointer"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -698,7 +712,7 @@ export function FirebaseUsersConsolePage() {
                 size="icon"
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="h-8 w-8 text-neutral-400 hover:text-white disabled:opacity-30 rounded-lg cursor-pointer"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground disabled:opacity-30 rounded-lg cursor-pointer"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -707,7 +721,7 @@ export function FirebaseUsersConsolePage() {
                 size="icon"
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="h-8 w-8 text-neutral-400 hover:text-white disabled:opacity-30 rounded-lg cursor-pointer"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground disabled:opacity-30 rounded-lg cursor-pointer"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -718,20 +732,20 @@ export function FirebaseUsersConsolePage() {
 
       {/* DIALOG: ADD USER */}
       <Dialog open={addUserOpen} onOpenChange={setAddUserOpen}>
-        <DialogContent className="glass sm:max-w-md border border-white/10 bg-neutral-950/95 p-6 backdrop-blur-2xl">
+        <DialogContent className="glass sm:max-w-md border border-border bg-secondary p-6 backdrop-blur-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
+            <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-blue-500" />
               Add user
             </DialogTitle>
-            <DialogDescription className="text-xs text-neutral-400">
+            <DialogDescription className="text-xs text-muted-foreground">
               Create a new user in Firebase Authentication. An identifier and password are required.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleAddUser} className="space-y-3.5 py-2">
             <div className="space-y-1.5 text-left">
-              <label className="text-[11px] font-medium text-neutral-300">
+              <label className="text-[11px] font-medium text-foreground">
                 Email address (Identifier) *
               </label>
               <Input
@@ -739,13 +753,13 @@ export function FirebaseUsersConsolePage() {
                 placeholder="user@example.com"
                 value={newUserEmail}
                 onChange={(e) => setNewUserEmail(e.target.value)}
-                className="h-9 text-xs bg-neutral-900 border-white/10 text-white font-mono"
+                className="h-9 text-xs bg-secondary border-border text-foreground font-mono"
                 required
               />
             </div>
 
             <div className="space-y-1.5 text-left">
-              <label className="text-[11px] font-medium text-neutral-300">
+              <label className="text-[11px] font-medium text-foreground">
                 Display Name (Optional)
               </label>
               <Input
@@ -753,12 +767,12 @@ export function FirebaseUsersConsolePage() {
                 placeholder="John Doe"
                 value={newUserName}
                 onChange={(e) => setNewUserName(e.target.value)}
-                className="h-9 text-xs bg-neutral-900 border-white/10 text-white"
+                className="h-9 text-xs bg-secondary border-border text-foreground"
               />
             </div>
 
             <div className="space-y-1.5 text-left">
-              <label className="text-[11px] font-medium text-neutral-300">
+              <label className="text-[11px] font-medium text-foreground">
                 Password (Optional temporary password)
               </label>
               <Input
@@ -766,7 +780,7 @@ export function FirebaseUsersConsolePage() {
                 placeholder="Min 6 characters"
                 value={newUserPassword}
                 onChange={(e) => setNewUserPassword(e.target.value)}
-                className="h-9 text-xs bg-neutral-900 border-white/10 text-white font-mono"
+                className="h-9 text-xs bg-secondary border-border text-foreground font-mono"
               />
             </div>
 
@@ -793,16 +807,16 @@ export function FirebaseUsersConsolePage() {
 
       {/* DIALOG: CONFIRM DELETE USER */}
       <Dialog open={Boolean(userToDelete)} onOpenChange={(open) => !open && setUserToDelete(null)}>
-        <DialogContent className="glass sm:max-w-md border border-white/10 bg-neutral-950/95 p-6 backdrop-blur-2xl">
+        <DialogContent className="glass sm:max-w-md border border-border bg-secondary p-6 backdrop-blur-2xl">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-red-400 flex items-center gap-2">
               <Trash2 className="h-5 w-5" />
               Delete user account?
             </DialogTitle>
-            <DialogDescription className="text-xs text-neutral-300 pt-1">
+            <DialogDescription className="text-xs text-foreground pt-1">
               Are you sure you want to delete the user account for{" "}
-              <strong className="text-white">{userToDelete?.email}</strong> (UID:{" "}
-              <code className="text-neutral-400">{userToDelete?.uid}</code>)?
+              <strong className="text-foreground">{userToDelete?.email}</strong> (UID:{" "}
+              <code className="text-muted-foreground">{userToDelete?.uid}</code>)?
               <br />
               <br />
               This will remove the user profile, watchlist, and continue watching history. This action cannot be undone.

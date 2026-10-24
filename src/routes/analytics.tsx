@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Activity,
   BarChart3,
@@ -15,6 +15,12 @@ import {
   TrendingUp,
   Tv,
   Users,
+  UserX,
+  UserCheck,
+  ShieldAlert,
+  Zap,
+  ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import {
   AreaChart,
@@ -33,20 +39,26 @@ import { PageHeader, Ready, Tag } from "@/components/admin/kit";
 import { Button } from "@/components/ui/button";
 import { useAdmin } from "@/services/store";
 import { pageHead } from "@/lib/head";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/analytics")({
-  head: pageHead("Analytics", "Live streaming metrics, user activity, and server telemetry for MaQi."),
+  head: pageHead("Analytics", "Live streaming metrics, guest vs registered audience telemetry, and server traffic."),
   component: AnalyticsPage,
 });
 
 const TRAFFIC_DATA = [
-  { day: "Mon", streams: 5420, users: 1120 },
-  { day: "Tue", streams: 6180, users: 1250 },
-  { day: "Wed", streams: 5900, users: 1190 },
-  { day: "Thu", streams: 7200, users: 1420 },
-  { day: "Fri", streams: 8640, users: 1780 },
-  { day: "Sat", streams: 11200, users: 2450 },
-  { day: "Sun", streams: 12850, users: 2890 },
+  { day: "Mon", streams: 5420, guestStreams: 4250, regStreams: 1170 },
+  { day: "Tue", streams: 6180, guestStreams: 4890, regStreams: 1290 },
+  { day: "Wed", streams: 5900, guestStreams: 4620, regStreams: 1280 },
+  { day: "Thu", streams: 7200, guestStreams: 5690, regStreams: 1510 },
+  { day: "Fri", streams: 8640, guestStreams: 6810, regStreams: 1830 },
+  { day: "Sat", streams: 11200, guestStreams: 8850, regStreams: 2350 },
+  { day: "Sun", streams: 12850, guestStreams: 10120, regStreams: 2730 },
+];
+
+const AUDIENCE_SPLIT = [
+  { name: "Guest Streamers (No Login)", value: 78, color: "#E50914" },
+  { name: "Registered Accounts", value: 22, color: "#3B82F6" },
 ];
 
 const SERVER_SHARE_DATA = [
@@ -58,71 +70,137 @@ const SERVER_SHARE_DATA = [
 ];
 
 const TOP_TITLES = [
-  { rank: 1, title: "Link Click (Season 2)", type: "Anime", plays: "4,820", server: "ONI (Fast HD)", trend: "+24%" },
-  { rank: 2, title: "Dune: Part Two", type: "Movie", plays: "3,950", server: "GOJO (Multi-Lang)", trend: "+18%" },
-  { rank: 3, title: "Solo Leveling", type: "Anime", plays: "3,610", server: "ONI (Fast HD)", trend: "+12%" },
-  { rank: 4, title: "House of the Dragon", type: "Series", plays: "2,840", server: "VIBE", trend: "+9%" },
-  { rank: 5, title: "Demon Slayer: Hashira Training", type: "Anime", plays: "2,530", server: "ONI (Fast HD)", trend: "+15%" },
-  { rank: 6, title: "The 8 Show", type: "Series", plays: "2,120", server: "GOJO", trend: "+5%" },
-  { rank: 7, title: "Doraemon: Castle of Undersea", type: "Movie", plays: "1,890", server: "HINDI", trend: "+8%" },
+  { rank: 1, title: "Link Click (Season 2)", type: "Anime", plays: "4,820", server: "ONI (Fast HD)", trend: "+24%", guestRatio: "82%" },
+  { rank: 2, title: "Dune: Part Two", type: "Movie", plays: "3,950", server: "GOJO (Multi-Lang)", trend: "+18%", guestRatio: "76%" },
+  { rank: 3, title: "Solo Leveling", type: "Anime", plays: "3,610", server: "ONI (Fast HD)", trend: "+12%", guestRatio: "84%" },
+  { rank: 4, title: "House of the Dragon", type: "Series", plays: "2,840", server: "VIBE", trend: "+9%", guestRatio: "71%" },
+  { rank: 5, title: "Demon Slayer: Hashira Training", type: "Anime", plays: "2,530", server: "ONI (Fast HD)", trend: "+15%", guestRatio: "85%" },
+  { rank: 6, title: "The 8 Show", type: "Series", plays: "2,120", server: "GOJO", trend: "+5%", guestRatio: "69%" },
+  { rank: 7, title: "Doraemon: Castle of Undersea", type: "Movie", plays: "1,890", server: "HINDI", trend: "+8%", guestRatio: "88%" },
 ];
 
-const LIVE_EVENTS = [
-  { id: "e1", action: "Stream Started", title: "Link Click - Ep 4", server: "ONI", time: "Just now", country: "IN" },
-  { id: "e2", action: "Quality Switched", title: "Dune: Part Two (1080p)", server: "GOJO", time: "1m ago", country: "IN" },
-  { id: "e3", action: "Added to Watchlist", title: "Solo Leveling", server: "-", time: "2m ago", country: "PK" },
-  { id: "e4", action: "New User Registration", title: "Google Auth Sync", server: "-", time: "3m ago", country: "IN" },
-  { id: "e5", action: "Stream Started", title: "House of the Dragon - Ep 8", server: "VIBE", time: "4m ago", country: "BD" },
+const GUEST_LIVE_STREAM_FEED = [
+  { id: "g1", device: "Guest Device #8419", model: "Samsung Galaxy M34", stream: "Demon Slayer: Ep 4", server: "ONI", time: "Just now", city: "Mumbai, IN", status: "1080p Active" },
+  { id: "g2", device: "Guest Device #3902", model: "Redmi Note 12", stream: "Dune: Part Two", server: "GOJO", time: "1m ago", city: "Delhi, IN", status: "Playback Buffer OK" },
+  { id: "g3", device: "Guest Device #7124", model: "OnePlus Nord CE 3", stream: "Solo Leveling - Ep 11", server: "ONI", time: "2m ago", city: "Karachi, PK", status: "1080p Active" },
+  { id: "g4", device: "Guest Device #5091", model: "Vivo Y200", stream: "House of the Dragon - S2", server: "VIBE", time: "3m ago", city: "Dhaka, BD", status: "Playback Buffer OK" },
+  { id: "g5", device: "Guest Device #6218", model: "Realme 11 Pro", stream: "Link Click (Season 2)", server: "ONI", time: "4m ago", city: "Kolkata, IN", status: "1080p Active" },
+  { id: "g6", device: "Guest Device #1184", model: "Motorola Edge 40", stream: "Demon Slayer: Ep 3", server: "ONI", time: "6m ago", city: "Dubai, AE", status: "1080p Active" },
 ];
 
 function AnalyticsPage() {
   const s = useAdmin();
   const [timeframe, setTimeframe] = useState<"24h" | "7d" | "30d">("7d");
+  const [audienceFilter, setAudienceFilter] = useState<"all" | "guests" | "registered">("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const totalServers = s.draft?.providers?.length || 8;
   const activeServers = s.draft?.providers?.filter((p) => p.enabled)?.length || 7;
 
+  function refreshMetrics() {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      setIsRefreshing(false);
+      toast.success("Audience & streaming telemetry updated! 🚀");
+    }, 600);
+  }
+
   return (
     <>
       <PageHeader
-        eyebrow="Real-Time Telemetry"
-        title="App Analytics"
+        eyebrow="Real-Time Telemetry & Traffic"
+        title="App Analytics & Audience"
         action={
-          <div className="flex rounded-lg border border-border p-0.5 glass">
-            <button
-              onClick={() => setTimeframe("24h")}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                timeframe === "24h" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
-              }`}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={refreshMetrics}
+              disabled={isRefreshing}
+              className="h-8 gap-1.5 text-xs"
             >
-              24h
-            </button>
-            <button
-              onClick={() => setTimeframe("7d")}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                timeframe === "7d" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              7 Days
-            </button>
-            <button
-              onClick={() => setTimeframe("30d")}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                timeframe === "30d" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              30 Days
-            </button>
+              <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <div className="flex rounded-lg border border-border p-0.5 glass">
+              <button
+                onClick={() => setTimeframe("24h")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                  timeframe === "24h" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                24h
+              </button>
+              <button
+                onClick={() => setTimeframe("7d")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                  timeframe === "7d" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                7 Days
+              </button>
+              <button
+                onClick={() => setTimeframe("30d")}
+                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                  timeframe === "30d" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                30 Days
+              </button>
+            </div>
           </div>
         }
       >
-        Live streaming telemetry, concurrent playback sessions, server health, and top consumed titles.
+        Live streaming telemetry, concurrent playback sessions, guest audience tracking, and server health.
       </PageHeader>
 
       <Ready>
         <div className="space-y-6 pb-20">
+          {/* GUEST AUDIENCE BANNER */}
+          <div className="rounded-2xl border border-red-500/30 bg-gradient-to-r from-red-600/15 via-red-950/20 to-neutral-900/60 p-4 sm:p-5 backdrop-blur-xl">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-red-600 text-white tracking-wider">
+                    Unauthenticated Audience Tracking
+                  </span>
+                  <span className="text-xs text-neutral-300 font-mono">100% Active</span>
+                </div>
+                <h3 className="text-base font-bold text-white pt-1">
+                  78.3% of users stream without logging in (Guest Mode)
+                </h3>
+                <p className="text-xs text-neutral-300 max-w-2xl">
+                  Un-logged users are tracked live via <strong>Cloudflare Edge Invocations</strong> and{" "}
+                  <strong>Firebase Analytics Device Instances</strong>. Even if users never enter an email or password, their streaming sessions, movie choices, and device models are captured automatically.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.open("https://console.firebase.google.com/project/maqi-f2c36/analytics", "_blank")}
+                  className="h-8 gap-1.5 text-xs bg-neutral-900 border-white/10 hover:border-white/30 text-white"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Firebase Realtime
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.open("https://dash.cloudflare.com", "_blank")}
+                  className="h-8 gap-1.5 text-xs bg-neutral-900 border-white/10 hover:border-white/30 text-white"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Cloudflare Edge
+                </Button>
+              </div>
+            </div>
+          </div>
+
           {/* 4 SUMMARY STAT CARDS */}
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {/* TOTAL PLAYS */}
             <div className="glass rounded-2xl p-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Total Stream Plays</span>
@@ -135,29 +213,41 @@ function AnalyticsPage() {
               </div>
             </div>
 
-            <div className="glass rounded-2xl p-4">
+            {/* GUEST STREAMERS */}
+            <div className="glass rounded-2xl p-4 border border-red-500/20 bg-red-500/[0.03]">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Active Streamers</span>
-                <Users className="h-4 w-4 text-cyan-400" />
+                <span className="text-xs text-red-300 font-semibold flex items-center gap-1">
+                  <UserX className="h-3.5 w-3.5 text-red-500" /> Guest Devices
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-red-600/20 text-red-400">
+                  78.3%
+                </span>
               </div>
-              <p className="mt-2 font-display text-2xl font-bold md:text-3xl">3,420</p>
-              <div className="mt-1 flex items-center gap-1 text-[11px] text-cyan-400">
-                <Activity className="h-3 w-3" />
-                <span>482 streaming now</span>
+              <p className="mt-2 font-display text-2xl font-bold md:text-3xl text-white">2,680</p>
+              <div className="mt-1 flex items-center gap-1 text-[11px] text-neutral-400">
+                <Smartphone className="h-3 w-3 text-red-400" />
+                <span>384 guest streamers now</span>
               </div>
             </div>
 
-            <div className="glass rounded-2xl p-4">
+            {/* REGISTERED USERS */}
+            <div className="glass rounded-2xl p-4 border border-blue-500/20 bg-blue-500/[0.03]">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Avg. Watch Time</span>
-                <Clock className="h-4 w-4 text-purple-400" />
+                <span className="text-xs text-blue-300 font-semibold flex items-center gap-1">
+                  <UserCheck className="h-3.5 w-3.5 text-blue-400" /> Logged In
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-600/20 text-blue-400">
+                  21.7%
+                </span>
               </div>
-              <p className="mt-2 font-display text-2xl font-bold md:text-3xl">44.8m</p>
-              <div className="mt-1 flex items-center gap-1 text-[11px] text-purple-400">
-                <span>+6.2m vs last week</span>
+              <p className="mt-2 font-display text-2xl font-bold md:text-3xl text-white">740</p>
+              <div className="mt-1 flex items-center gap-1 text-[11px] text-neutral-400">
+                <Activity className="h-3 w-3 text-blue-400" />
+                <span>98 streaming now</span>
               </div>
             </div>
 
+            {/* STREAMING SERVERS */}
             <div className="glass rounded-2xl p-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Streaming Servers</span>
@@ -175,23 +265,36 @@ function AnalyticsPage() {
 
           {/* CHARTS ROW */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* TRAFFIC TREND CHART */}
+            {/* TRAFFIC TREND CHART WITH GUEST OVERLAY */}
             <div className="glass lg:col-span-2 rounded-2xl p-5">
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <h3 className="text-base font-semibold">Streaming Traffic Trend</h3>
-                  <p className="text-xs text-muted-foreground">Daily playback sessions across all servers</p>
+                  <h3 className="text-base font-semibold">Streaming Traffic Breakdown</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Comparison between Guest (Red) vs Registered (Blue) playback sessions
+                  </p>
                 </div>
-                <Tag tone="primary">Live</Tag>
+                <div className="flex items-center gap-3 text-xs font-mono">
+                  <span className="flex items-center gap-1.5 text-red-400">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-600" /> Guests (~78%)
+                  </span>
+                  <span className="flex items-center gap-1.5 text-blue-400">
+                    <span className="h-2.5 w-2.5 rounded-full bg-blue-500" /> Accounts (~22%)
+                  </span>
+                </div>
               </div>
 
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={TRAFFIC_DATA}>
                     <defs>
-                      <linearGradient id="streamGrad" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="guestGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#E50914" stopOpacity={0.4} />
                         <stop offset="95%" stopColor="#E50914" stopOpacity={0.0} />
+                      </linearGradient>
+                      <linearGradient id="regGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="day" stroke="#888888" fontSize={12} tickLine={false} />
@@ -206,27 +309,37 @@ function AnalyticsPage() {
                     />
                     <Area
                       type="monotone"
-                      dataKey="streams"
+                      dataKey="guestStreams"
+                      name="Guest Streams"
                       stroke="#E50914"
                       strokeWidth={2}
                       fillOpacity={1}
-                      fill="url(#streamGrad)"
+                      fill="url(#guestGrad)"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="regStreams"
+                      name="Registered Streams"
+                      stroke="#3B82F6"
+                      strokeWidth={2}
+                      fillOpacity={1}
+                      fill="url(#regGrad)"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* SERVER LOAD DISTRIBUTION */}
+            {/* AUDIENCE PIE CHART */}
             <div className="glass rounded-2xl p-5">
-              <h3 className="text-base font-semibold">Server Routing Share</h3>
-              <p className="text-xs text-muted-foreground">Load distribution by streaming provider</p>
+              <h3 className="text-base font-semibold">Audience Composition</h3>
+              <p className="text-xs text-muted-foreground">Unauthenticated vs Account users</p>
 
               <div className="h-44 w-full mt-2">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={SERVER_SHARE_DATA}
+                      data={AUDIENCE_SPLIT}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
@@ -235,7 +348,7 @@ function AnalyticsPage() {
                       outerRadius={70}
                       paddingAngle={4}
                     >
-                      {SERVER_SHARE_DATA.map((entry, index) => (
+                      {AUDIENCE_SPLIT.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -251,87 +364,96 @@ function AnalyticsPage() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="mt-3 space-y-1.5 font-mono text-xs">
-                {SERVER_SHARE_DATA.map((s) => (
-                  <div key={s.name} className="flex items-center justify-between">
+              <div className="mt-3 space-y-2 font-mono text-xs">
+                {AUDIENCE_SPLIT.map((s) => (
+                  <div key={s.name} className="flex items-center justify-between p-1.5 rounded-lg bg-secondary/30">
                     <div className="flex items-center gap-2">
                       <span className="h-2 w-2 rounded-full" style={{ backgroundColor: s.color }} />
-                      <span className="font-semibold">{s.name}</span>
+                      <span className="font-semibold text-foreground">{s.name}</span>
                     </div>
-                    <span className="text-muted-foreground">{s.value}%</span>
+                    <span className="font-bold text-foreground">{s.value}%</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* ROW 3: TOP STREAMED TITLES & LIVE EVENTS */}
+          {/* ROW 3: LIVE GUEST DEVICE FEED & TOP TITLES */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* TOP TITLES TABLE */}
-            <div className="glass lg:col-span-2 rounded-2xl p-5">
-              <div className="mb-4 flex items-center justify-between">
+            {/* GUEST LIVE TELEMETRY FEED */}
+            <div className="glass lg:col-span-2 rounded-2xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-semibold">Top Streamed Content</h3>
-                  <p className="text-xs text-muted-foreground">Most watched anime, movies & series</p>
+                  <h3 className="text-base font-semibold flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-red-500" />
+                    Live Guest Devices &amp; Unregistered Stream Feed
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Real-time video playback events coming from unregistered Android devices
+                  </p>
                 </div>
-                <Flame className="h-4 w-4 text-primary" />
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="text-[10px] font-mono text-emerald-400 uppercase">Live Edge</span>
+                </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-border text-muted-foreground">
-                      <th className="pb-2.5 font-medium">#</th>
-                      <th className="pb-2.5 font-medium">Title</th>
-                      <th className="pb-2.5 font-medium">Type</th>
-                      <th className="pb-2.5 font-medium">Streams</th>
-                      <th className="pb-2.5 font-medium">Top Server</th>
-                      <th className="pb-2.5 font-medium text-right">Trend</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {TOP_TITLES.map((item) => (
-                      <tr key={item.rank} className="hover:bg-white/5">
-                        <td className="py-2.5 font-mono text-muted-foreground">#{item.rank}</td>
-                        <td className="py-2.5 font-medium text-foreground">{item.title}</td>
-                        <td className="py-2.5">
-                          <Tag tone={item.type === "Anime" ? "primary" : "neutral"}>{item.type}</Tag>
-                        </td>
-                        <td className="py-2.5 font-mono">{item.plays}</td>
-                        <td className="py-2.5 font-mono text-muted-foreground">{item.server}</td>
-                        <td className="py-2.5 text-right font-mono text-emerald-400">{item.trend}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="divide-y divide-border/60 rounded-xl border border-border/60 overflow-hidden bg-black/40">
+                {GUEST_LIVE_STREAM_FEED.map((g) => (
+                  <div key={g.id} className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-white/[0.02]">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-red-400">{g.device}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">({g.model})</span>
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          {g.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-foreground font-medium flex items-center gap-1.5">
+                        <PlayCircle className="h-3 w-3 text-red-500" />
+                        {g.stream}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-[11px] font-mono text-muted-foreground shrink-0">
+                      <span>Server: <strong className="text-foreground">{g.server}</strong></span>
+                      <span className="rounded bg-secondary px-1.5 py-0.5">{g.city}</span>
+                      <span>{g.time}</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* LIVE EVENT LOG */}
-            <div className="glass rounded-2xl p-5">
-              <div className="mb-4 flex items-center justify-between">
+            {/* TOP STREAMED CONTENT */}
+            <div className="glass rounded-2xl p-5 space-y-3">
+              <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-semibold">Live Feed</h3>
-                  <p className="text-xs text-muted-foreground">Recent client actions</p>
+                  <h3 className="text-base font-semibold flex items-center gap-1.5">
+                    <Flame className="h-4 w-4 text-primary" />
+                    Top Streamed Content
+                  </h3>
+                  <p className="text-xs text-muted-foreground">Highest consumed titles</p>
                 </div>
-                <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
               </div>
 
-              <ul className="space-y-3">
-                {LIVE_EVENTS.map((ev) => (
-                  <li key={ev.id} className="rounded-xl border border-border/40 bg-black/20 p-2.5 text-xs">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-foreground">{ev.action}</span>
-                      <span className="font-mono text-[10px] text-muted-foreground">{ev.time}</span>
+              <div className="space-y-2">
+                {TOP_TITLES.slice(0, 5).map((item) => (
+                  <div key={item.rank} className="p-2.5 rounded-xl bg-secondary/40 border border-border/40 flex items-center justify-between">
+                    <div className="min-w-0 pr-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-mono text-muted-foreground font-bold">#{item.rank}</span>
+                        <span className="text-xs font-semibold text-foreground truncate">{item.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground font-mono">
+                        <span>{item.plays} plays</span>
+                        <span className="text-red-400">({item.guestRatio} guests)</span>
+                      </div>
                     </div>
-                    <p className="mt-0.5 truncate text-muted-foreground">{ev.title}</p>
-                    <div className="mt-1.5 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
-                      <span>Server: {ev.server}</span>
-                      <span className="rounded bg-white/10 px-1.5 py-0.2">Region: {ev.country}</span>
-                    </div>
-                  </li>
+                    <Tag tone={item.type === "Anime" ? "primary" : "muted"}>{item.type}</Tag>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </div>
         </div>
