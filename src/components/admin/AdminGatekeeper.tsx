@@ -29,14 +29,12 @@ interface AdminGatekeeperProps {
 }
 
 export function AdminGatekeeper({ onAuthenticated }: AdminGatekeeperProps) {
-  const [adminId, setAdminId] = useState("admin@maqi.app");
+  const [adminId, setAdminId] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [showPassHint, setShowPassHint] = useState(false);
-  const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
     // Check if user already has an active or remembered session
@@ -186,18 +184,12 @@ export function AdminGatekeeper({ onAuthenticated }: AdminGatekeeperProps) {
       setAttempts((prev) => prev + 1);
 
       if (code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found") {
-        toast.error("Invalid ID or Password.", {
-          description: "Use Master Passkey (maqi@admin78) or click 'Set / Reset Password'.",
-        });
-        setShowPassHint(true);
+        toast.error("Invalid Admin ID or Password. Please try again.");
       } else if (code === "auth/email-already-in-use") {
         toast.error("Account already exists! Please click 'Sign In' instead.");
         setIsRegisterMode(false);
       } else {
-        toast.error("Authentication failed: " + msg, {
-          description: "Tip: Use Master Passkey: maqi@admin78",
-        });
-        setShowPassHint(true);
+        toast.error("Authentication failed: " + msg);
       }
     } finally {
       setLoading(false);
@@ -236,47 +228,16 @@ export function AdminGatekeeper({ onAuthenticated }: AdminGatekeeperProps) {
           </div>
         </div>
 
-        {attempts >= 2 && (
-          <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] text-amber-300 flex items-start gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-            <div className="text-left">
-              <span>Password bhul gaye? Master passkey use karein: </span>
-              <code className="bg-black/60 px-1.5 py-0.5 rounded text-amber-200 font-mono font-bold">
-                maqi@admin78
-              </code>
-            </div>
-          </div>
-        )}
-
-        {/* QUICK ID SELECTOR CHIPS */}
-        <div className="mb-4 flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] font-mono text-neutral-500 mr-1">Quick Select:</span>
-          {["admin@maqi.app", "admin", "chaiwala78"].map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setAdminId(id)}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-mono border transition-colors ${
-                adminId === id
-                  ? "bg-red-600/20 text-red-300 border-red-500/40"
-                  : "bg-neutral-900 text-neutral-400 border-white/5 hover:border-white/20"
-              }`}
-            >
-              {id}
-            </button>
-          ))}
-        </div>
-
         {/* LOGIN FORM */}
         <form onSubmit={handleEmailAuth} className="space-y-4">
           <div className="space-y-1.5 text-left">
             <label className="text-[11px] font-medium text-neutral-300 flex items-center gap-1.5">
               <Mail className="h-3.5 w-3.5 text-red-500" />
-              Admin ID or Email
+              Admin ID / Email
             </label>
             <Input
               type="text"
-              placeholder="admin@maqi.app or admin"
+              placeholder="Enter your admin ID or email"
               value={adminId}
               onChange={(e) => setAdminId(e.target.value)}
               className="h-10 text-xs bg-neutral-900/80 border-white/10 font-mono text-white placeholder:text-neutral-500 focus:border-red-500/50"
@@ -285,24 +246,14 @@ export function AdminGatekeeper({ onAuthenticated }: AdminGatekeeperProps) {
           </div>
 
           <div className="space-y-1.5 text-left">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-medium text-neutral-300 flex items-center gap-1.5">
-                <Lock className="h-3.5 w-3.5 text-red-500" />
-                Security Password / Passkey
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowPassHint(!showPassHint)}
-                className="text-[10px] text-neutral-400 hover:text-red-400 flex items-center gap-1"
-              >
-                <Info className="h-3 w-3" />
-                {showPassHint ? "Hide Passkeys" : "Show Master Keys"}
-              </button>
-            </div>
+            <label className="text-[11px] font-medium text-neutral-300 flex items-center gap-1.5">
+              <Lock className="h-3.5 w-3.5 text-red-500" />
+              Security Password
+            </label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder={isRegisterMode ? "Enter new admin password" : "Enter admin password or passkey"}
+                placeholder={isRegisterMode ? "Create your admin password (min 6 chars)" : "Enter your security password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="h-10 text-xs bg-neutral-900/80 border-white/10 pr-10 font-mono text-white placeholder:text-neutral-500 focus:border-red-500/50"
@@ -316,26 +267,6 @@ export function AdminGatekeeper({ onAuthenticated }: AdminGatekeeperProps) {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-
-            {showPassHint && (
-              <div className="mt-2 rounded-lg border border-red-500/20 bg-neutral-900/90 p-2.5 text-[11px] text-neutral-300 space-y-1.5">
-                <span className="font-semibold text-red-400 block text-[10px] uppercase font-mono tracking-wider">
-                  Master Security Passkeys (Instant Unlock):
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {["maqi@admin78", "admin78", "admin@123", "maqi2025"].map((pk) => (
-                    <button
-                      key={pk}
-                      type="button"
-                      onClick={() => setPassword(pk)}
-                      className="px-2 py-0.5 rounded bg-black/60 border border-white/10 text-amber-300 font-mono text-[10px] hover:border-amber-500/50"
-                    >
-                      {pk}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           <div className="flex items-center justify-between pt-1">

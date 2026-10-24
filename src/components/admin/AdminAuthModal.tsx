@@ -27,7 +27,7 @@ export function AdminAuthModal({
   const isOpen = isControlled ? controlledOpen : internalOpen;
   const setIsOpen = isControlled ? setControlledOpen! : setInternalOpen;
 
-  const [email, setEmail] = useState("admin@maqi.app");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);

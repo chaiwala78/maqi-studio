@@ -13,6 +13,7 @@ import {
   Bell,
   LogOut,
   ShieldCheck,
+  Server,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -34,7 +35,7 @@ const NAV = [
   { to: "/providers", label: "Providers", icon: Radio },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/users", label: "Users & Team", icon: Users },
-  { to: "/settings", label: "Settings & Log", icon: Settings },
+  { to: "/settings", label: "Cloud & Systems", icon: Server },
 ] as const;
 
 const KEY_LABEL: Record<DataKey, string> = {
@@ -103,12 +104,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   // COMPULSORY LOGIN SHIELD: If not unlocked, render ONLY AdminGatekeeper
   if (authChecking) {
     return (
-      <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center text-white select-none">
+      <div className="min-h-screen w-full bg-background flex flex-col items-center justify-center text-foreground select-none">
         <div className="relative flex items-center justify-center">
-          <div className="h-16 w-16 rounded-full border-2 border-red-500/20 border-t-red-500 animate-spin" />
-          <ShieldCheck className="h-7 w-7 text-red-500 absolute" />
+          <div className="h-16 w-16 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+          <ShieldCheck className="h-7 w-7 text-primary absolute" />
         </div>
-        <p className="mt-4 font-mono text-xs tracking-widest uppercase text-neutral-400 animate-pulse">
+        <p className="mt-4 font-mono text-xs tracking-widest uppercase text-muted-foreground animate-pulse">
           Verifying Security Clearance...
         </p>
       </div>
@@ -127,69 +128,72 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const isActive = (to: string) => (to === "/" ? path === "/" : path.startsWith(to));
 
+  const current = NAV.find((n) => isActive(n.to)) ?? NAV[0];
+
   return (
-    <div className="min-h-screen md:pl-56 bg-background">
-      {/* Top Admin Security Status Bar */}
-      <div className="sticky top-0 z-30 flex items-center justify-between border-b border-warning/20 glass border-x-0 border-t-0 px-4 py-1.5 font-mono text-[10px] uppercase tracking-widest text-warning">
-        <span className="truncate">
-          {adminService.mode === "demo" ? (
-            <>
-              <span className="md:hidden">Demo — not live</span>
-              <span className="hidden md:inline">Demo data — not connected to production</span>
-            </>
-          ) : (
-            "Live Cloudflare Edge"
-          )}
-        </span>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 text-foreground lowercase">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span className="hidden sm:inline font-sans text-[11px] truncate max-w-[140px]">
-              {currentUser?.email || "admin@maqi.app"}
-            </span>
+    <div className="min-h-screen md:pl-60 bg-background">
+      {/* App header */}
+      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
+        <div className="flex items-center gap-3 px-4 py-3 md:px-8">
+          <span className="bg-brand flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-lg font-bold text-primary-foreground shadow-sm md:hidden">
+            M
+          </span>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-xl leading-tight">{current.label}</h1>
+            <p className="truncate font-mono text-[10px] uppercase tracking-widest text-warning">
+              {adminService.mode === "demo" ? "Demo — not live" : "Live"}
+            </p>
           </div>
+          <Link
+            to="/settings"
+            aria-label="Settings"
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-foreground"
+          >
+            <Settings className="h-5 w-5" />
+          </Link>
           <button
             onClick={handleLogout}
-            className="rounded px-2.5 py-0.5 bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-500/30 uppercase text-[10px] font-semibold tracking-wider flex items-center gap-1 cursor-pointer transition-colors"
+            aria-label={`Log out ${currentUser?.email ?? ""}`}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-muted-foreground hover:bg-secondary hover:text-destructive"
           >
-            <LogOut className="h-3 w-3" /> Log Out
+            <LogOut className="h-5 w-5" />
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Desktop / tablet rail */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col justify-between border-r border-border bg-sidebar md:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col justify-between border-r border-border bg-sidebar md:flex">
         <div>
-          <div className="px-5 py-6">
-            <span className="font-display text-xl font-semibold">MaQi</span>
-            <span className="eyebrow ml-2">Admin</span>
+          <div className="flex items-center gap-3 px-5 py-5">
+            <span className="bg-brand flex h-9 w-9 items-center justify-center rounded-xl font-display font-bold text-primary-foreground">
+              M
+            </span>
+            <span className="font-display text-lg font-bold">MaQi</span>
+            <span className="eyebrow">Admin</span>
           </div>
-          <nav className="flex flex-col gap-0.5 px-3">
+          <nav className="flex flex-col gap-1 px-3">
             {NAV.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground",
-                  isActive(n.to) && "bg-sidebar-accent text-foreground"
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
+                  isActive(n.to) && "bg-brand text-primary-foreground hover:bg-brand hover:text-primary-foreground"
                 )}
               >
-                <n.icon className={cn("h-4 w-4", isActive(n.to) && "text-primary")} /> {n.label}
+                <n.icon className="h-4 w-4" /> {n.label}
               </Link>
             ))}
           </nav>
         </div>
 
-        {/* Sidebar Footer Logout */}
-        <div className="p-3 border-t border-border/40">
+        <div className="border-t border-border p-3">
+          <p className="truncate px-3 pb-2 text-xs text-muted-foreground">{currentUser?.email || "admin"}</p>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-destructive hover:bg-destructive/10"
           >
-            <span className="flex items-center gap-2">
-              <LogOut className="h-4 w-4" /> Sign Out
-            </span>
-            <span className="font-mono text-[9px] uppercase tracking-wider text-neutral-500">Lock</span>
+            <LogOut className="h-4 w-4" /> Sign out
           </button>
         </div>
       </aside>
@@ -198,27 +202,26 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <PublishBar />
 
-      {/* Mobile bottom nav - Exactly 5 items: Overview, Sections, Banners, Providers, More */}
-      <nav className="glass fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 grid grid-cols-5 rounded-2xl shadow-lg md:hidden">
+      {/* Mobile bottom dock */}
+      <nav className="bg-dock fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 gap-1 px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] md:hidden">
         {NAV.slice(0, 4).map((n) => (
           <Link
             key={n.to}
             to={n.to}
             className={cn(
-              "relative flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground",
-              isActive(n.to) && "text-foreground"
+              "flex flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-medium",
+              isActive(n.to) && "bg-brand text-primary-foreground"
             )}
           >
-            {isActive(n.to) && <span className="absolute top-1 h-8 w-12 rounded-xl bg-primary/15" />}
-            <n.icon className={cn("relative h-5 w-5", isActive(n.to) && "text-primary")} />{" "}
-            <span className="relative">{n.label}</span>
+            <n.icon className="h-5 w-5" />
+            <span className="max-w-full truncate px-1">{n.label}</span>
           </Link>
         ))}
         <button
           onClick={() => setMore(true)}
           className={cn(
-            "flex flex-col items-center gap-1 py-2.5 text-[10px] text-muted-foreground",
-            NAV.slice(4).some((n) => isActive(n.to)) && "text-foreground"
+            "flex flex-col items-center gap-1 rounded-xl py-2 text-[10px] font-medium",
+            NAV.slice(4).some((n) => isActive(n.to)) && "bg-brand text-primary-foreground"
           )}
         >
           <MoreHorizontal className="h-5 w-5" /> More
