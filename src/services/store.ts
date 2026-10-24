@@ -10,7 +10,7 @@ interface State {
   log: LogEntry[];
 }
 
-const LS_KEY = "maqi-admin-demo-v1";
+const LS_KEY = "maqi-admin-live-v2";
 const INITIAL: State = { status: "idle", draft: null, published: null, log: [] };
 let state: State = INITIAL;
 const listeners = new Set<() => void>();
@@ -37,11 +37,8 @@ export async function loadAdmin() {
   if (state.status === "loading" || state.status === "ready") return;
   set({ status: "loading" });
   try {
-    const saved = localStorage.getItem(LS_KEY);
-    if (saved && adminService.mode === "demo") {
-      const p = JSON.parse(saved);
-      set({ status: "ready", draft: p.draft, published: p.published, log: p.log ?? [] });
-      return;
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("maqi-admin-demo-v1");
     }
     const data = await adminService.load();
     set({ status: "ready", draft: data, published: structuredClone(data) });

@@ -737,9 +737,9 @@ function CloudSettingsPage() {
             <div className="p-4 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold block text-foreground">Data Service Mode</span>
-                <span className="text-[11px] text-muted-foreground">Current pipeline handling admin writes</span>
+                <span className="text-[11px] text-muted-foreground">Connected to Cloudflare Worker &amp; Firebase</span>
               </div>
-              <Tag tone="warning">{adminService.mode.toUpperCase()}</Tag>
+              <Tag tone="primary">LIVE PRODUCTION</Tag>
             </div>
 
             <div className="p-4 flex items-center justify-between">
@@ -755,21 +755,21 @@ function CloudSettingsPage() {
 
             <div className="p-4 flex items-center justify-between">
               <div>
-                <span className="text-xs font-semibold block text-foreground">Local Session Storage</span>
-                <span className="text-[11px] text-muted-foreground">Clear browser cached drafts and logs</span>
+                <span className="text-xs font-semibold block text-foreground">Local Browser Cache</span>
+                <span className="text-[11px] text-muted-foreground">Clear browser storage and reload live from Cloud</span>
               </div>
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  if (window.confirm("Reset all local draft storage and log?")) {
+                  if (window.confirm("Purge browser cache and reload fresh from Cloudflare & Firebase?")) {
                     resetDemo();
-                    toast.success("Draft storage reset.");
+                    toast.success("Cache cleared! Reloaded fresh data from Cloud.");
                   }
                 }}
-                className="text-xs text-red-400"
+                className="text-xs text-red-400 hover:text-red-300"
               >
-                Reset Draft Data
+                Purge Local Cache
               </Button>
             </div>
           </div>

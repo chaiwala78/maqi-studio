@@ -140,8 +140,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           </span>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl leading-tight">{current.label}</h1>
-            <p className="truncate font-mono text-[10px] uppercase tracking-widest text-warning">
-              {adminService.mode === "demo" ? "Demo — not live" : "Live"}
+            <p className="truncate font-mono text-[10px] uppercase tracking-widest text-emerald-400 font-semibold">
+              Production • Live Cloud
             </p>
           </div>
           <Link

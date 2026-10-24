@@ -78,17 +78,18 @@ export const liveWorkerAdminService: AdminService = {
       }));
 
       return {
-        catalog: DEMO_DATA.catalog,
-        curated: curated.length > 0 ? curated : DEMO_DATA.curated,
-        banners: banners.length > 0 ? banners : DEMO_DATA.banners,
-        sections: sections.length > 0 ? sections : DEMO_DATA.sections,
-        providers: providers.length > 0 ? providers : DEMO_DATA.providers,
+        catalog: [],
+        curated: curated,
+        banners: banners,
+        sections: sections,
+        providers: providers,
         admins: [
-          { email: "aabito986f@gmail.com", role: "owner", addedAt: new Date().toISOString().split("T")[0] },
+          { email: "jojo219884@gmail.com", role: "owner", addedAt: new Date().toISOString().slice(0, 10) },
+          { email: "aabito986f@gmail.com", role: "admin", addedAt: new Date().toISOString().slice(0, 10) },
         ],
       };
     } catch (err) {
-      console.warn("Failed to load live config from worker, falling back to cached demo data:", err);
+      console.warn("Worker fetch error:", err);
       return structuredClone(DEMO_DATA);
     }
   },
