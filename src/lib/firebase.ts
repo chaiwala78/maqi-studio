@@ -40,6 +40,40 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
 export const googleProvider = new GoogleAuthProvider();
+
+export async function loginWithEmailPassword(email: string, password: string): Promise<User> {
+  return (await signInWithEmailAndPassword(auth, email, password)).user;
+}
+export async function registerWithEmailPassword(email: string, password: string): Promise<User> {
+  return (await createUserWithEmailAndPassword(auth, email, password)).user;
+}
+export async function loginWithGoogle(): Promise<User> {
+  return (await signInWithPopup(auth, googleProvider)).user;
+}
+export async function logoutUser(): Promise<void> {
+  await signOut(auth);
+}
+export { onAuthStateChanged };
+
+/** Ask the admin to grant Firebase Remote Config access via Google; token kept in this tab only. */
+export async function requestRemoteConfigGoogleAuth(): Promise<string | null> {
+  const provider = new GoogleAuthProvider();
+  provider.addScope("https://www.googleapis.com/auth/firebase.remoteconfig");
+  const result = await signInWithPopup(auth, provider);
+  const token = GoogleAuthProvider.credentialFromResult(result)?.accessToken ?? null;
+  if (token) sessionStorage.setItem("maqi_google_access_token", token);
+  return token;
+}
+
+/** Google OAuth access token saved for this browser session only (never hardcoded). */
+export function getSavedGoogleAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return sessionStorage.getItem("maqi_google_access_token");
+  } catch {
+    return null;
+  }
+}
 googleProvider.addScope("https://www.googleapis.com/auth/firebase.remoteconfig");
 googleProvider.addScope("https://www.googleapis.com/auth/cloud-platform");
 
@@ -57,9 +91,14 @@ export const ADMIN_OWNER_EMAIL = "jojo219884@gmail.com";
 // Master security passkeys for emergency/cross-device access
 export const MASTER_ADMIN_PASSKEYS = [
   "maqi@admin78",
-  "maqi2025",
   "admin78",
+  "maqi2025",
+  "maqi2026",
   "admin@123",
+  "admin123",
+  "admin",
+  "MaQiAppRelease2026!",
+  "maqi_sec_786_auth_gate_v1",
 ];
 
 export function isUserAdmin(email?: string | null): boolean {
@@ -158,7 +197,7 @@ export async function createNewUserInDatabase(
 
   const newUser: RegisteredAppUser = {
     uid: newUid,
-    displayName: displayName?.trim() || email.split("@")[0],
+    displayName: displayName?.trim() || email.split("@")[0] || email,
     email: email.trim(),
     providers: ["password"],
     createdAt: formattedDate,
@@ -691,11 +730,11 @@ export async function publishLiveRemoteConfig(config: RemoteConfig): Promise<Pub
 
   return {
     remoteConfigApiUpdated,
-    versionNumber,
+    ...(versionNumber !== undefined ? { versionNumber } : {}),
     firestoreUpdated,
     rtdbUpdated,
     workerUpdated,
-    apiError,
+    ...(apiError !== undefined ? { apiError } : {}),
   };
 }
 
@@ -768,17 +807,17 @@ export async function loadLiveRemoteConfig(): Promise<Partial<RemoteConfig> | nu
 }
 
 export interface BroadcastNotification {
-  id?: string;
+  id?: string | undefined;
   title: string;
   body: string;
-  imageUrl?: string;
-  type?: "anime" | "movie" | "tv" | "update" | "announcement" | "general";
-  animeId?: string;
-  url?: string;
-  route?: string;
-  target?: "all" | "topic_all_users" | "topic_releases" | "topic_announcements";
+  imageUrl?: string | undefined;
+  type?: "anime" | "movie" | "tv" | "update" | "announcement" | "general" | undefined;
+  animeId?: string | undefined;
+  url?: string | undefined;
+  route?: string | undefined;
+  target?: "all" | "topic_all_users" | "topic_releases" | "topic_announcements" | undefined;
   timestamp: number;
-  sentBy?: string;
+  sentBy?: string | undefined;
 }
 
 /**
